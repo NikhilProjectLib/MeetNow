@@ -1,65 +1,127 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useActivityStore } from "@/stores/activity-store";
+import { ActivityCard } from "@/components/activity-card";
+import { CategoryFilter } from "@/components/category-filter";
+import { ActivityCategory } from "@/types";
+import { Flame, MapPin, Sparkles } from "lucide-react";
+import { useCurrentUser } from "@/hooks/use-current-user";
+
+export default function HomePage() {
+  const currentUser = useCurrentUser();
+  const { getActivities, joinActivity, activities } = useActivityStore();
+  const [activeCategory, setActiveCategory] = useState<ActivityCategory | null>(null);
+  const router = useRouter();
+
+  // Derive categories dynamically
+  const dynamicCategories = useMemo(() => {
+    const now = new Date();
+    const futureActivities = activities.filter(
+      (a) => new Date(`${a.date}T${a.time || "23:59"}`) >= now
+    );
+    const cats = new Set(futureActivities.map((a) => a.category));
+    return Array.from(cats);
+  }, [activities]);
+
+  const filtered = getActivities(activeCategory ?? undefined);
+
+  // Separate "starting soon" activities
+  const now = new Date();
+  const startingSoon = filtered.filter((a) => {
+    const diff = new Date(`${a.date}T${a.time}`).getTime() - now.getTime();
+    return diff > 0 && diff <= 3 * 60 * 60 * 1000; // within 3 hours
+  });
+  const others = filtered.filter((a) => {
+    const diff = new Date(`${a.date}T${a.time}`).getTime() - now.getTime();
+    return diff > 3 * 60 * 60 * 1000;
+  });
+
+  const handleJoin = (activityId: string) => {
+    if (!currentUser) return;
+    joinActivity(activityId, {
+      id: currentUser.id,
+      name: currentUser.name,
+      avatar: currentUser.avatar,
+    });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex flex-col gap-6">
+      {/* Welcome Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">Welcome back,</p>
+          <h1 className="text-3xl font-bold mt-0.5">
+            {(currentUser?.name || "User").split(" ")[0]} <span className="text-2xl">{"👋"}</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-muted-foreground mt-1 flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5" />
+            Nearby activities
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="flex items-center gap-2 text-sm font-medium bg-primary/10 text-primary px-4 py-2 rounded-xl">
+          <Sparkles className="h-4 w-4" />
+          <span>{filtered.length} live</span>
         </div>
-      </main>
+      </div>
+
+      {/* Category Filters */}
+      <CategoryFilter
+        categories={dynamicCategories}
+        activeCategory={activeCategory}
+        onSelect={setActiveCategory}
+      />
+
+      {/* Starting Soon Section */}
+      {startingSoon.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-red-600 flex items-center gap-1.5 mb-3">
+            <Flame className="h-4 w-4" />
+            Starting Soon
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {startingSoon.map((activity) => (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                variant="join"
+                onAction={handleJoin}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Activities */}
+      {others.length > 0 && (
+        <div>
+          {startingSoon.length > 0 && (
+            <h2 className="text-sm font-semibold text-muted-foreground mb-3">
+              Upcoming Activities
+            </h2>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {others.map((activity) => (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                variant="join"
+                onAction={handleJoin}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {filtered.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground">
+          <p className="text-4xl mb-3">{"🔍"}</p>
+          <p className="text-lg font-medium">No activities found</p>
+          <p className="text-sm mt-1">Try a different category or check back later!</p>
+        </div>
+      )}
     </div>
   );
 }
