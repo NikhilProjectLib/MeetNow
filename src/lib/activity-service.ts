@@ -6,7 +6,6 @@ import {
   doc,
   onSnapshot,
   query,
-  orderBy,
   serverTimestamp,
   getDoc,
 } from "firebase/firestore";
@@ -109,17 +108,32 @@ export function subscribeToActivities(
   callback: (activities: Activity[]) => void
 ): () => void {
   const q = query(
-    collection(db, COLLECTION),
-    orderBy("createdAt", "desc")
+    collection(db, COLLECTION)
   );
 
   return onSnapshot(q, (snapshot) => {
-    const activities: Activity[] = snapshot.docs.map((d) => ({
-      ...(d.data() as Omit<Activity, "id">),
-      id: d.id,
-    }));
+    const activities: Activity[] = snapshot.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        name: data.name || "",
+        emoji: data.emoji || "\u2728",
+        category: data.category || "other",
+        location: data.location || "",
+        lat: data.lat || 0,
+        lng: data.lng || 0,
+        date: data.date || "",
+        time: data.time || "",
+        distance: data.distance || "0 km",
+        playersJoined: data.playersJoined || 0,
+        playersNeeded: data.playersNeeded || 10,
+        players: data.players || [],
+        description: data.description || "",
+        createdBy: data.createdBy || "",
+      } as Activity;
+    });
     callback(activities);
   }, (error) => {
-    console.error("Firestore subscription error:", error);
+    console.error("Firestore subscription error:", error.message);
   });
 }

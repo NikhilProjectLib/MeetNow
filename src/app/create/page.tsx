@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Plus, Search, Calendar, Clock, Users, Sparkles } from "lucide-react";
 import { CalendarPicker } from "@/components/calendar-picker";
 import { LocationPicker } from "@/components/location-picker";
+import { SuccessModal } from "@/components/success-modal";
 
 export default function CreatePage() {
   const currentUser = useCurrentUser();
@@ -33,6 +34,7 @@ export default function CreatePage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Location coordinates
   const [lat, setLat] = useState(userLocation?.lat || 0);
@@ -147,13 +149,13 @@ export default function CreatePage() {
       } else {
         await addActivity(activityData);
       }
-      router.push("/");
+      setIsSubmitting(false);
+      setShowSuccess(true);
     } catch (err) {
       console.error("Failed to create activity:", err);
       await addActivity(activityData);
-      router.push("/");
-    } finally {
       setIsSubmitting(false);
+      setShowSuccess(true);
     }
   };
 
@@ -513,6 +515,14 @@ export default function CreatePage() {
           </Card>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccess}
+        title="Activity Created!"
+        message="Your activity is now live and visible to everyone nearby. People can join anytime!"
+        onClose={() => router.push("/")}
+      />
     </div>
   );
 }
