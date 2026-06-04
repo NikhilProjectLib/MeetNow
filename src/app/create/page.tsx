@@ -15,6 +15,7 @@ import {
   categoryLabels,
   quickTimeSlots,
   playerPresets,
+  autoDeleteOptions,
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { Plus, Search, Calendar, Clock, Users, Sparkles } from "lucide-react";
@@ -35,6 +36,7 @@ export default function CreatePage() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [autoDeleteMinutes, setAutoDeleteMinutes] = useState(60); // Default: 1 hour after event
 
   // Location coordinates
   const [lat, setLat] = useState(userLocation?.lat || 0);
@@ -132,6 +134,17 @@ export default function CreatePage() {
     setErrors({});
     setIsSubmitting(true);
 
+    // Calculate expiresAt based on event time + auto-delete duration
+    let expiresAt: string | undefined;
+    let autoDeleteAfter: string | undefined;
+    if (autoDeleteMinutes >= 0 && form.date && form.time) {
+      const eventEnd = new Date(`${form.date}T${form.time}`);
+      eventEnd.setMinutes(eventEnd.getMinutes() + autoDeleteMinutes);
+      expiresAt = eventEnd.toISOString();
+      const opt = autoDeleteOptions.find((o) => o.value === autoDeleteMinutes);
+      autoDeleteAfter = opt?.label || `${autoDeleteMinutes} minutes after event`;
+    }
+
     const activityData = {
       ...form,
       emoji: categoryEmojis[form.category] || "✨",
@@ -141,6 +154,8 @@ export default function CreatePage() {
       playersJoined: 0,
       players: [],
       createdBy: currentUser?.id || "anonymous",
+      ...(expiresAt && { expiresAt }),
+      ...(autoDeleteAfter && { autoDeleteAfter }),
     };
 
     try {
@@ -449,6 +464,36 @@ export default function CreatePage() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
+              </CardContent>
+            </Card>
+
+            {/* Auto-Delete Timer */}
+            <Card>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm font-medium">Auto-delete activity</label>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Activity will be automatically removed after the selected time
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {autoDeleteOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setAutoDeleteMinutes(opt.value)}
+                      className={cn(
+                        "px-3 py-2 rounded-lg text-sm text-left transition-all border",
+                        autoDeleteMinutes === opt.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      )}
+                    >
+                      <span className="font-medium block text-xs">{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
               </CardContent>
             </Card>
 

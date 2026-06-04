@@ -49,6 +49,16 @@ export const playerPresets = [
   { label: "Huge (50+)", value: 50 },
 ];
 
+// Auto-delete duration options
+export const autoDeleteOptions = [
+  { label: "Immediately after event", value: 0, description: "Deleted when event time passes" },
+  { label: "1 hour after event", value: 60, description: "Gives time for late joiners" },
+  { label: "6 hours after event", value: 360, description: "Stays visible for a while" },
+  { label: "24 hours after event", value: 1440, description: "Next day cleanup" },
+  { label: "3 days after event", value: 4320, description: "Stays in history longer" },
+  { label: "Never (manual delete)", value: -1, description: "You delete it yourself" },
+];
+
 // ========== TEST DATA ==========
 // Activities are structured so you can test all scenarios:
 // - owned-*  : Created by current user (owner controls visible)

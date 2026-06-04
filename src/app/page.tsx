@@ -9,6 +9,7 @@ import { ActivityCategory } from "@/types";
 import { Flame, Sparkles, Map, List } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function HomePage() {
   const currentUser = useCurrentUser();
@@ -48,6 +49,8 @@ export default function HomePage() {
       name: currentUser.name,
       avatar: currentUser.avatar,
     });
+    const activity = activities.find((a) => a.id === activityId);
+    toast.success("Joined!", { description: activity?.name || "Activity joined successfully" });
   };
 
   const handleMapSelect = (id: string) => {

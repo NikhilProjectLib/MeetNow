@@ -10,6 +10,8 @@ import { ArrowLeft, MapPin, Clock, Users, Calendar, Info } from "lucide-react";
 import { ActivityChat } from "@/components/activity-chat";
 import { OwnerControls } from "@/components/owner-controls";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { ShareButton } from "@/components/share-button";
+import { toast } from "sonner";
 
 export default function ActivityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -61,23 +63,26 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
       name: currentUser.name,
       avatar: currentUser.avatar,
     });
+    toast.success("You joined!", { description: activity.name });
   };
 
   const handleLeave = () => {
     if (!currentUser) return;
     leaveActivity(activity.id, currentUser.id);
+    toast("Left activity", { description: activity.name });
   };
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
-      {/* Back button */}
-      <div className="flex items-center gap-2">
+      {/* Back button + Share */}
+      <div className="flex items-center justify-between">
         <Link href="/">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
         </Link>
+        <ShareButton activity={activity} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

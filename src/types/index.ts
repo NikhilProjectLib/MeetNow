@@ -24,6 +24,8 @@ export interface Activity {
   players: Player[];
   description: string;
   createdBy: string;
+  expiresAt?: string; // ISO timestamp — activity auto-deletes after this time
+  autoDeleteAfter?: string; // Duration label for display (e.g., "1 hour after event")
 }
 
 export interface UserProfile {

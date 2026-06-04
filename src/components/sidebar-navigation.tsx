@@ -76,9 +76,13 @@ export function SidebarNavigation() {
       {/* Footer */}
       <div className="border-t px-4 py-4">
         <div className="flex items-center gap-3 px-2">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-purple-200 flex items-center justify-center text-sm font-bold text-primary shadow-inner">
-            {initial}
-          </div>
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="" className="h-10 w-10 rounded-full object-cover" />
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-purple-200 flex items-center justify-center text-sm font-bold text-primary shadow-inner">
+              {initial}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{displayName}</p>
             <p className="text-[11px] text-muted-foreground truncate">{user?.email || ""}</p>
