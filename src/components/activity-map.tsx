@@ -41,7 +41,7 @@ export function ActivityMap({ activities, selectedId, onSelectActivity }: Activi
   };
 
   return (
-    <div className="relative h-full rounded-xl overflow-hidden border">
+    <div className="relative h-full overflow-hidden">
       <MapInner
         activities={activities}
         selectedId={selectedId}

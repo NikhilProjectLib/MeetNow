@@ -1,45 +1,60 @@
 @import "tailwindcss";
 
+/* ========================================
+   UBER EXACT COLOR SYSTEM
+   White background, black text, green accent
+   Source: Uber brand guidelines
+   
+   Primary: #000000 (black)
+   Background: #FFFFFF (white)
+   Secondary BG: #F6F6F6 (uber light gray)
+   Border: #E2E2E2
+   Muted text: #6B6B6B
+   Green: #06C167 (uber green)
+   ======================================== */
+
 @theme {
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.145 0.017 285.823);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.145 0.017 285.823);
-  --color-primary: oklch(0.553 0.235 277.117);
-  --color-primary-foreground: oklch(0.969 0.003 264.542);
-  --color-secondary: oklch(0.961 0.009 264.531);
-  --color-secondary-foreground: oklch(0.205 0.020 285.755);
-  --color-muted: oklch(0.961 0.009 264.531);
-  --color-muted-foreground: oklch(0.556 0.022 257.417);
-  --color-accent: oklch(0.961 0.009 264.531);
-  --color-accent-foreground: oklch(0.205 0.020 285.755);
-  --color-destructive: oklch(0.577 0.245 27.325);
-  --color-destructive-foreground: oklch(0.969 0.003 264.542);
-  --color-border: oklch(0.922 0.010 264.531);
-  --color-input: oklch(0.922 0.010 264.531);
-  --color-ring: oklch(0.553 0.235 277.117);
-  --radius: 0.75rem;
+  --color-background: #FFFFFF;
+  --color-foreground: #000000;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #000000;
+  --color-primary: #000000;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F6F6F6;
+  --color-secondary-foreground: #000000;
+  --color-muted: #F6F6F6;
+  --color-muted-foreground: #6B6B6B;
+  --color-accent: #F6F6F6;
+  --color-accent-foreground: #000000;
+  --color-destructive: #E11900;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #E2E2E2;
+  --color-input: #E2E2E2;
+  --color-ring: #000000;
+  --color-uber-green: #06C167;
+  --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-background: oklch(0.145 0.017 285.823);
-    --color-foreground: oklch(0.969 0.003 264.542);
-    --color-card: oklch(0.205 0.020 285.755);
-    --color-card-foreground: oklch(0.969 0.003 264.542);
-    --color-primary: oklch(0.623 0.214 259.815);
-    --color-primary-foreground: oklch(0.969 0.003 264.542);
-    --color-secondary: oklch(0.269 0.025 285.755);
-    --color-secondary-foreground: oklch(0.969 0.003 264.542);
-    --color-muted: oklch(0.269 0.025 285.755);
-    --color-muted-foreground: oklch(0.708 0.022 261.325);
-    --color-accent: oklch(0.269 0.025 285.755);
-    --color-accent-foreground: oklch(0.969 0.003 264.542);
-    --color-destructive: oklch(0.577 0.245 27.325);
-    --color-destructive-foreground: oklch(0.969 0.003 264.542);
-    --color-border: oklch(0.269 0.025 285.755);
-    --color-input: oklch(0.269 0.025 285.755);
-    --color-ring: oklch(0.623 0.214 259.815);
+    --color-background: #000000;
+    --color-foreground: #FFFFFF;
+    --color-card: #141414;
+    --color-card-foreground: #FFFFFF;
+    --color-primary: #FFFFFF;
+    --color-primary-foreground: #000000;
+    --color-secondary: #1A1A1A;
+    --color-secondary-foreground: #FFFFFF;
+    --color-muted: #1A1A1A;
+    --color-muted-foreground: #A3A3A3;
+    --color-accent: #1A1A1A;
+    --color-accent-foreground: #FFFFFF;
+    --color-destructive: #E11900;
+    --color-destructive-foreground: #FFFFFF;
+    --color-border: #333333;
+    --color-input: #333333;
+    --color-ring: #FFFFFF;
+    --color-uber-green: #06C167;
   }
 }
 
@@ -50,13 +65,304 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hide scrollbar for category filter */
+/* ========================================
+   UBER BUTTONS
+   Black background, white text, pill shape
+   Exactly like uber.com "Request a ride"
+   ======================================== */
+
+.uber-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background-color: #000000;
+  color: #FFFFFF;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: 500px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.uber-btn:hover {
+  background-color: #333333;
+}
+
+.uber-btn:active {
+  transform: scale(0.97);
+}
+
+.uber-btn-secondary {
+  background-color: #F6F6F6;
+  color: #000000;
+}
+
+.uber-btn-secondary:hover {
+  background-color: #E2E2E2;
+}
+
+.uber-btn-white {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+.uber-btn-white:hover {
+  background-color: #F6F6F6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .uber-btn {
+    background-color: #FFFFFF;
+    color: #000000;
+  }
+  .uber-btn:hover {
+    background-color: #E2E2E2;
+  }
+  .uber-btn-secondary {
+    background-color: #1A1A1A;
+    color: #FFFFFF;
+  }
+  .uber-btn-secondary:hover {
+    background-color: #333333;
+  }
+}
+
+/* ========================================
+   UBER INPUT FIELDS
+   #F6F6F6 background, no border, rounded
+   Exactly like uber.com pickup/dropoff inputs
+   ======================================== */
+
+.uber-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 2.75rem;
+  background-color: #F6F6F6;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #000000;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+.uber-input:focus {
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 2px #000000;
+}
+
+.uber-input::placeholder {
+  color: #6B6B6B;
+}
+
+@media (prefers-color-scheme: dark) {
+  .uber-input {
+    background-color: #1A1A1A;
+    color: #FFFFFF;
+  }
+  .uber-input:focus {
+    background-color: #000000;
+    box-shadow: 0 0 0 2px #FFFFFF;
+  }
+  .uber-input::placeholder {
+    color: #A3A3A3;
+  }
+}
+
+/* ========================================
+   UBER CARDS
+   White, slight border, rounded-lg
+   ======================================== */
+
+.uber-card {
+  background: var(--color-card);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.uber-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   UBER CHIP / TOGGLE PILLS
+   Like uber.com's "Ride", "Package" etc tabs
+   ======================================== */
+
+.uber-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 500px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  background: #F6F6F6;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.uber-chip:hover {
+  background: #E2E2E2;
+}
+
+.uber-chip-active {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.uber-chip-active:hover {
+  background: #333333;
+}
+
+@media (prefers-color-scheme: dark) {
+  .uber-chip {
+    background: #1A1A1A;
+    color: #FFFFFF;
+  }
+  .uber-chip:hover {
+    background: #333333;
+  }
+  .uber-chip-active {
+    background: #FFFFFF;
+    color: #000000;
+  }
+  .uber-chip-active:hover {
+    background: #E2E2E2;
+  }
+}
+
+/* ========================================
+   UBER GREEN (success, live indicators)
+   #06C167 — Uber's official green
+   ======================================== */
+
+.uber-green {
+  color: #06C167;
+}
+
+.uber-green-bg {
+  background-color: #06C167;
+}
+
+.uber-green-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #06C167;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #E2E2E2;
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-card {
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid #333333;
+  }
+}
+
+/* ========================================
+   MICRO-INTERACTIONS
+   ======================================== */
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.press-effect:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.starting-soon-pulse {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+@keyframes live-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.6); }
+}
+
+.live-dot {
+  animation: live-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+/* ========================================
+   GRADIENT TEXT (Uber uses pure black,
+   but we add subtle depth for branding)
+   ======================================== */
+
+.gradient-text {
+  color: #000000;
+  /* Uber doesn't use gradient text — they use pure black.
+     Keeping this class for backward compat but making it solid black */
+}
+
+@media (prefers-color-scheme: dark) {
+  .gradient-text {
+    color: #FFFFFF;
+  }
+}
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+
+.sidebar-gradient {
+  background: var(--color-background);
 }

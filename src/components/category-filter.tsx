@@ -2,7 +2,6 @@
 
 import { ActivityCategory } from "@/types";
 import { categoryEmojis, categoryLabels } from "@/lib/mock-data";
-import { getCategoryColor } from "@/lib/category-colors";
 import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
@@ -13,22 +12,30 @@ interface CategoryFilterProps {
 
 export function CategoryFilter({ categories, activeCategory, onSelect }: CategoryFilterProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      {/* "All" chip */}
+      <button
+        onClick={() => onSelect(null)}
+        className={cn(
+          "uber-chip shrink-0",
+          !activeCategory && "uber-chip-active"
+        )}
+      >
+        <span>All</span>
+      </button>
+
       {categories.map((category) => {
         const isActive = activeCategory === category;
-        const colors = getCategoryColor(category);
         return (
           <button
             key={category}
             onClick={() => onSelect(isActive ? null : category)}
             className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all border",
-              isActive
-                ? cn(colors.bg, "text-white border-transparent shadow-md")
-                : cn("bg-background border-border hover:border-primary/30", colors.text)
+              "uber-chip shrink-0",
+              isActive && "uber-chip-active"
             )}
           >
-            <span className="text-base">{categoryEmojis[category] || "\u2728"}</span>
+            <span className="text-sm">{categoryEmojis[category] || "✨"}</span>
             <span>{categoryLabels[category] || category}</span>
           </button>
         );

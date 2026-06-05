@@ -9,7 +9,7 @@ const navItems = [
   { label: "Home", href: "/", icon: Home },
   { label: "Explore", href: "/explore", icon: Compass },
   { label: "Create", href: "/create", icon: PlusCircle },
-  { label: "My Stuff", href: "/my-activities", icon: CalendarCheck },
+  { label: "Activity", href: "/my-activities", icon: CalendarCheck },
   { label: "Profile", href: "/profile", icon: User },
 ];
 
@@ -17,29 +17,27 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
-      <div className="flex items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#E2E2E2] dark:border-[#333333] bg-[#FFFFFF] dark:bg-[#000000]">
+      <div className="flex items-center justify-around py-2.5">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
-          const isCreate = item.href === "/create";
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
+                "flex flex-col items-center gap-1 px-3 py-1 text-[10px] font-medium transition-colors",
+                isActive
+                  ? "text-[#000000] dark:text-[#FFFFFF]"
+                  : "text-[#6B6B6B]"
               )}
             >
-              {isCreate ? (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md -mt-4">
-                  <item.icon className="h-5 w-5" />
-                </div>
-              ) : (
-                <item.icon className="h-5 w-5" />
-              )}
-              <span className={cn(isCreate && "mt-1")}>{item.label}</span>
+              <item.icon className={cn(
+                "h-5 w-5",
+                isActive ? "text-[#000000] dark:text-[#FFFFFF]" : "text-[#6B6B6B]"
+              )} />
+              <span>{item.label}</span>
             </Link>
           );
         })}
