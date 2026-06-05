@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity } from "@/types";
-import { categoryEmojis } from "@/lib/mock-data";
 import { useActivityStore } from "@/stores/activity-store";
 import { getCurrentPosition } from "@/lib/geo-utils";
-import { Crosshair, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Navigation, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
 interface ActivityMapProps {
@@ -15,7 +13,6 @@ interface ActivityMapProps {
   onSelectActivity: (id: string) => void;
 }
 
-// Leaflet must be loaded client-side only
 const MapInner = dynamic(() => import("./map-inner"), { ssr: false });
 
 export function ActivityMap({ activities, selectedId, onSelectActivity }: ActivityMapProps) {
@@ -50,17 +47,17 @@ export function ActivityMap({ activities, selectedId, onSelectActivity }: Activi
         userLocation={userLocation}
       />
 
-      {/* My Location FAB */}
+      {/* My Location button */}
       <button
         onClick={handleMyLocation}
         disabled={isLocating}
-        className="absolute bottom-4 right-4 z-[1000] bg-white border rounded-full p-3 shadow-lg hover:bg-gray-50 transition-colors"
-        title="Go to my location"
+        className="absolute bottom-6 right-4 z-[1000] h-10 w-10 bg-[#FFFFFF] dark:bg-[#1A1A1A] rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.16)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-shadow border border-[#E2E2E2]/50 dark:border-[#333333]/50"
+        title="My Location"
       >
         {isLocating ? (
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <Loader2 className="h-4 w-4 animate-spin text-[#4285F4]" />
         ) : (
-          <Crosshair className="h-5 w-5 text-primary" />
+          <Navigation className="h-4 w-4 text-[#000000] dark:text-[#FFFFFF]" />
         )}
       </button>
     </div>

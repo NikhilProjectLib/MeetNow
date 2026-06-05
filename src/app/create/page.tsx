@@ -324,7 +324,7 @@ export default function CreatePage() {
             <h3 className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF] mb-4 flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5" /> Live Preview
             </h3>
-            <div className="flex flex-col gap-3 p-4 rounded-xl bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333]">
+            <div className="flex flex-col gap-3 p-4 rounded-xl bg-[#FFFFFF] dark:bg-[#141414] border border-[#E2E2E2] dark:border-[#333333]">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-xl bg-[#F6F6F6] dark:bg-[#1A1A1A] flex items-center justify-center text-2xl">
                   {categoryEmojis[form.category] || "✨"}
@@ -335,10 +335,9 @@ export default function CreatePage() {
                 </div>
               </div>
               <div className="text-xs text-[#6B6B6B] space-y-1.5">
-                <p>📍 {form.location || "Location"}</p>
-                <p>📅 {form.date ? formatDateLabel(form.date) : "Date"} · {form.time || "Time"}</p>
+                <p>📍 {form.location || "Location not set"}</p>
+                <p>📅 {form.date ? formatDateLabel(form.date) : "Date not set"} · {form.time || "Time not set"}</p>
                 <p>👥 0/{form.playersNeeded} players</p>
-                {lat !== 0 && <p>📌 GPS: {lat.toFixed(3)}, {lng.toFixed(3)}</p>}
               </div>
               {form.description && (
                 <p className="text-xs text-[#6B6B6B] border-t border-[#E2E2E2] dark:border-[#333333] pt-2 mt-1 line-clamp-3">{form.description}</p>
@@ -347,8 +346,9 @@ export default function CreatePage() {
                 <div className="h-[4px] bg-[#E2E2E2] dark:bg-[#333333] rounded-full overflow-hidden">
                   <div className="h-full w-0 bg-[#000000] dark:bg-[#FFFFFF] rounded-full" />
                 </div>
-                <p className="text-[10px] text-[#6B6B6B] mt-1.5">
-                  {isFirebaseConnected ? "Visible to all users instantly" : "Preview mode"}
+                <p className="text-[10px] text-[#06C167] mt-1.5 flex items-center gap-1">
+                  {isFirebaseConnected && <><span className="h-1.5 w-1.5 rounded-full bg-[#06C167]" /> Live — visible to all users</>}
+                  {!isFirebaseConnected && "Preview mode"}
                 </p>
               </div>
             </div>

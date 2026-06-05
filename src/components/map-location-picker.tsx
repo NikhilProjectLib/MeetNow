@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { MapPin, Crosshair, Loader2, X, Search } from "lucide-react";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import dynamic from "next/dynamic";
@@ -30,28 +28,37 @@ export function MapLocationPicker({
   ]);
   const [address, setAddress] = useState("");
   const [isLocating, setIsLocating] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<{ display_name: string; lat: string; lon: string }[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Reverse geocode using Nominatim (free)
+  // Reverse geocode — always returns a readable address name
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+    setIsGeocoding(true);
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`
       );
       const data = await res.json();
       if (data.display_name) {
-        const short =
-          data.address?.suburb ||
-          data.address?.neighbourhood ||
-          data.address?.road ||
-          "";
-        const city = data.address?.city || data.address?.town || data.address?.village || "";
-        setAddress(short ? `${short}, ${city}` : city || data.display_name.split(",").slice(0, 2).join(","));
+        const addr = data.address || {};
+        const parts: string[] = [];
+        if (addr.road || addr.pedestrian) parts.push(addr.road || addr.pedestrian);
+        if (addr.suburb || addr.neighbourhood) parts.push(addr.suburb || addr.neighbourhood);
+        if (addr.city || addr.town || addr.village) parts.push(addr.city || addr.town || addr.village);
+        
+        const label = parts.length > 0
+          ? parts.slice(0, 3).join(", ")
+          : data.display_name.split(",").slice(0, 3).join(",").trim();
+        setAddress(label);
+      } else {
+        setAddress(`Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
       }
     } catch {
-      setAddress(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      setAddress(`Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+    } finally {
+      setIsGeocoding(false);
     }
   }, []);
 
@@ -70,7 +77,6 @@ export function MapLocationPicker({
     finally { setIsLocating(false); }
   };
 
-  // Search using Nominatim
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
@@ -88,7 +94,9 @@ export function MapLocationPicker({
     const lat = parseFloat(result.lat);
     const lng = parseFloat(result.lon);
     setCenter([lat, lng]);
-    setAddress(result.display_name.split(",").slice(0, 3).join(","));
+    // Use a clean short name from the result
+    const parts = result.display_name.split(",");
+    setAddress(parts.slice(0, 3).join(",").trim());
     setSearchResults([]);
     setSearchQuery("");
   };
@@ -96,48 +104,51 @@ export function MapLocationPicker({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl h-[600px] bg-card rounded-xl border shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-[#000000]/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl h-[600px] bg-[#FFFFFF] dark:bg-[#000000] rounded-2xl border border-[#E2E2E2] dark:border-[#333333] shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            <h2 className="font-semibold">Select Location</h2>
-          </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-secondary flex items-center justify-center">
-            <X className="h-4 w-4" />
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E2E2E2] dark:border-[#333333] shrink-0">
+          <h2 className="font-bold text-[#000000] dark:text-[#FFFFFF]">Select Location</h2>
+          <button onClick={onClose} className="h-8 w-8 rounded-full bg-[#F6F6F6] dark:bg-[#1A1A1A] flex items-center justify-center hover:bg-[#E2E2E2] dark:hover:bg-[#333333] transition-colors">
+            <X className="h-4 w-4 text-[#000000] dark:text-[#FFFFFF]" />
           </button>
         </div>
 
         {/* Search */}
-        <div className="px-4 py-3 border-b shrink-0 relative z-20">
+        <div className="px-5 py-3 border-b border-[#E2E2E2] dark:border-[#333333] shrink-0 relative z-20">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B6B6B]" />
+              <input
+                type="text"
                 placeholder="Search for area, street, or place..."
-                className="pl-9"
+                className="w-full pl-9 pr-4 py-2.5 bg-[#F6F6F6] dark:bg-[#1A1A1A] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
             </div>
-            <Button type="button" size="default" onClick={handleSearch} disabled={isSearching}>
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isSearching}
+              className="uber-btn text-xs px-4 py-2"
+            >
               {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
-            </Button>
+            </button>
           </div>
 
-          {/* Search results dropdown */}
+          {/* Search results */}
           {searchResults.length > 0 && (
-            <div className="absolute left-4 right-4 top-full bg-card border rounded-lg shadow-xl max-h-48 overflow-y-auto mt-1 z-30">
+            <div className="absolute left-5 right-5 top-full bg-[#FFFFFF] dark:bg-[#1A1A1A] border border-[#E2E2E2] dark:border-[#333333] rounded-xl shadow-xl max-h-48 overflow-y-auto mt-1 z-30">
               {searchResults.map((result, i) => (
                 <button
                   key={i}
-                  className="w-full text-left px-4 py-3 hover:bg-secondary transition-colors flex items-start gap-3 border-b last:border-0"
+                  className="w-full text-left px-4 py-3 hover:bg-[#F6F6F6] dark:hover:bg-[#262626] transition-colors flex items-start gap-3 border-b border-[#E2E2E2] dark:border-[#333333] last:border-0"
                   onClick={() => handleSelectSearchResult(result)}
                 >
-                  <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <p className="text-sm truncate">{result.display_name}</p>
+                  <MapPin className="h-4 w-4 text-[#000000] dark:text-[#FFFFFF] mt-0.5 shrink-0" />
+                  <p className="text-sm text-[#000000] dark:text-[#FFFFFF] line-clamp-2">{result.display_name}</p>
                 </button>
               ))}
             </div>
@@ -151,48 +162,50 @@ export function MapLocationPicker({
           {/* Center Pin */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none z-[1000]">
             <div className="flex flex-col items-center">
-              <div className="bg-primary rounded-full p-2 shadow-lg">
-                <MapPin className="h-5 w-5 text-primary-foreground" />
+              <div className="bg-[#000000] dark:bg-[#FFFFFF] rounded-full p-2 shadow-lg">
+                <MapPin className="h-5 w-5 text-[#FFFFFF] dark:text-[#000000]" />
               </div>
-              <div className="w-2 h-2 bg-primary/40 rounded-full mt-0.5" />
+              <div className="w-2 h-2 bg-[#000000]/30 dark:bg-[#FFFFFF]/30 rounded-full mt-0.5" />
             </div>
           </div>
 
-          {/* My Location FAB */}
+          {/* My Location */}
           <button
             onClick={handleMyLocation}
             disabled={isLocating}
-            className="absolute bottom-4 right-4 z-[1000] bg-white border rounded-full p-3 shadow-lg hover:bg-gray-50 transition-colors"
+            className="absolute bottom-4 right-4 z-[1000] h-10 w-10 bg-[#FFFFFF] dark:bg-[#1A1A1A] rounded-full flex items-center justify-center shadow-lg hover:bg-[#F6F6F6] dark:hover:bg-[#333333] transition-colors border border-[#E2E2E2]/50 dark:border-[#333333]/50"
           >
             {isLocating ? (
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <Loader2 className="h-4 w-4 animate-spin text-[#4285F4]" />
             ) : (
-              <Crosshair className="h-5 w-5 text-primary" />
+              <Crosshair className="h-4 w-4 text-[#000000] dark:text-[#FFFFFF]" />
             )}
           </button>
         </div>
 
-        {/* Footer */}
-        <div className="px-4 py-4 border-t bg-card shrink-0">
+        {/* Footer — shows selected address */}
+        <div className="px-5 py-4 border-t border-[#E2E2E2] dark:border-[#333333] shrink-0">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <MapPin className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 rounded-full bg-[#F6F6F6] dark:bg-[#1A1A1A] flex items-center justify-center shrink-0">
+              <MapPin className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{address || "Drag the map to select location"}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm font-medium text-[#000000] dark:text-[#FFFFFF] truncate">
+                {isGeocoding ? "Finding address..." : address || "Drag the map to select location"}
+              </p>
+              <p className="text-xs text-[#6B6B6B]">
                 {center[0].toFixed(5)}, {center[1].toFixed(5)}
               </p>
             </div>
           </div>
-          <Button
-            className="w-full"
-            size="lg"
+          <button
+            type="button"
+            className="uber-btn w-full py-3.5"
             onClick={() => onConfirm({ location: address, lat: center[0], lng: center[1] })}
-            disabled={!address}
+            disabled={!address || isGeocoding}
           >
             Confirm this location
-          </Button>
+          </button>
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@ export default function HomePage() {
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
 
   const dynamicCategories = useMemo(() => {
     const now = new Date();
@@ -51,6 +52,15 @@ export default function HomePage() {
     return upcomingActivities.filter(
       (a) => a.location.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)
     );
+  }, [upcomingActivities, locationQuery]);
+
+  // Dropdown search results (top 5 matches)
+  const searchResults = useMemo(() => {
+    if (!locationQuery.trim()) return [];
+    const q = locationQuery.toLowerCase();
+    return upcomingActivities
+      .filter((a) => a.location.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))
+      .slice(0, 5);
   }, [upcomingActivities, locationQuery]);
 
   // Pagination
@@ -116,9 +126,53 @@ export default function HomePage() {
                 type="text"
                 placeholder="Search location or activity"
                 value={locationQuery}
-                onChange={(e) => setLocationQuery(e.target.value)}
+                onChange={(e) => { setLocationQuery(e.target.value); setShowSearchDropdown(true); }}
+                onFocus={() => { if (locationQuery.trim()) setShowSearchDropdown(true); }}
+                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 className="uber-input rounded-t-lg rounded-b-none border-b border-[#E2E2E2] dark:border-[#333333]"
               />
+
+              {/* Search dropdown — Google-style suggestions */}
+              {showSearchDropdown && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 bg-[#FFFFFF] dark:bg-[#1A1A1A] border border-[#E2E2E2] dark:border-[#333333] rounded-b-xl shadow-lg overflow-hidden">
+                  {searchResults.map((activity) => (
+                    <button
+                      key={activity.id}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#F6F6F6] dark:hover:bg-[#262626] transition-colors text-left"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        router.push(`/activity/${activity.id}`);
+                        setShowSearchDropdown(false);
+                      }}
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-[#F6F6F6] dark:bg-[#333333] flex items-center justify-center text-lg shrink-0">
+                        {activity.emoji}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#000000] dark:text-[#FFFFFF] truncate">{activity.name}</p>
+                        <p className="text-xs text-[#6B6B6B] truncate">{activity.location} · {activity.time}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[#6B6B6B] shrink-0" />
+                    </button>
+                  ))}
+                  <div className="px-4 py-2 border-t border-[#E2E2E2] dark:border-[#333333] bg-[#F6F6F6] dark:bg-[#1A1A1A]">
+                    <p className="text-[11px] text-[#6B6B6B]">{searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found</p>
+                  </div>
+                </div>
+              )}
+
+              {/* No results message */}
+              {showSearchDropdown && locationQuery.trim() && searchResults.length === 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 bg-[#FFFFFF] dark:bg-[#1A1A1A] border border-[#E2E2E2] dark:border-[#333333] rounded-b-xl shadow-lg px-4 py-4 text-center">
+                  <p className="text-sm text-[#6B6B6B]">No activities match &quot;{locationQuery}&quot;</p>
+                  <button
+                    onMouseDown={(e) => { e.preventDefault(); router.push("/create"); }}
+                    className="text-xs text-[#000000] dark:text-[#FFFFFF] font-medium hover:underline mt-1"
+                  >
+                    Create one →
+                  </button>
+                </div>
+              )}
             </div>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2">

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { MapPin, Crosshair, Loader2, Map } from "lucide-react";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import { MapLocationPicker } from "@/components/map-location-picker";
@@ -54,7 +52,7 @@ export function LocationPicker({
           onLocationChange(label);
         }
       } catch {
-        onLocationChange(`${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
+        onLocationChange(`Near ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
       }
 
       setGeoStatus("📍 Location detected");
@@ -74,70 +72,68 @@ export function LocationPicker({
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-sm font-medium flex items-center gap-1.5">
-        <MapPin className="h-4 w-4 text-muted-foreground" />
+      <label className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF] flex items-center gap-1.5">
+        <MapPin className="h-4 w-4 text-[#6B6B6B]" />
         Location
       </label>
 
-      {/* Text input */}
-      <Input
-        placeholder="e.g., Central Park, Sports Complex..."
+      {/* Text input — clearly visible with proper placeholder */}
+      <input
+        type="text"
+        placeholder="e.g., Central Park, Sports Complex, Marine Drive..."
         value={location}
         onChange={(e) => onLocationChange(e.target.value)}
+        className="w-full px-4 py-3 bg-[#FFFFFF] dark:bg-[#000000] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF] transition-all"
       />
 
-      {/* Action buttons row */}
+      {/* Action buttons */}
       <div className="flex gap-2 flex-wrap">
-        {/* Select on Map — Uber/Rapido style */}
-        <Button
+        <button
           type="button"
-          variant="outline"
-          size="sm"
           onClick={() => setShowMap(true)}
-          className="gap-1.5"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] rounded-full text-[0.8125rem] font-medium text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] transition-colors"
         >
-          <Map className="h-4 w-4" />
+          <Map className="h-3.5 w-3.5" />
           Select on Map
-        </Button>
+        </button>
 
-        {/* Use current location */}
-        <Button
+        <button
           type="button"
-          variant="outline"
-          size="sm"
           onClick={handleUseMyLocation}
           disabled={isLocating}
-          className="gap-1.5"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] rounded-full text-[0.8125rem] font-medium text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] transition-colors disabled:opacity-50"
         >
           {isLocating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <Crosshair className="h-4 w-4" />
+            <Crosshair className="h-3.5 w-3.5" />
           )}
           Use my location
-        </Button>
+        </button>
       </div>
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
-      {geoStatus && <p className="text-xs text-muted-foreground">{geoStatus}</p>}
+      {error && <p className="text-xs text-[#E11900]">{error}</p>}
+      {geoStatus && <p className="text-xs text-[#6B6B6B]">{geoStatus}</p>}
 
-      {lat !== 0 && lng !== 0 && (
-        <p className="text-xs text-muted-foreground">
-          📌 Coordinates: {lat.toFixed(5)}, {lng.toFixed(5)}
-        </p>
+      {/* Show selected location summary */}
+      {location && lat !== 0 && lng !== 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-[#E6F9EF] dark:bg-[#001A0D] rounded-lg">
+          <MapPin className="h-3.5 w-3.5 text-[#06C167] shrink-0" />
+          <span className="text-xs text-[#06C167] font-medium truncate">{location}</span>
+        </div>
       )}
 
       {/* Popular locations */}
       {popularLocations.length > 0 && !location && (
         <div className="mt-1">
-          <p className="text-xs text-muted-foreground mb-1.5">Popular nearby:</p>
+          <p className="text-xs text-[#6B6B6B] mb-1.5">Popular nearby:</p>
           <div className="flex flex-wrap gap-1.5">
             {popularLocations.map((loc) => (
               <button
                 key={loc}
                 type="button"
                 onClick={() => onLocationChange(loc)}
-                className="text-xs px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors"
+                className="text-xs px-2.5 py-1 rounded-full bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] transition-colors"
               >
                 {loc}
               </button>

@@ -366,3 +366,71 @@ body {
 .sidebar-gradient {
   background: var(--color-background);
 }
+
+/* ========================================
+   LEAFLET MAP OVERRIDES
+   Modern, clean popups matching Uber style
+   ======================================== */
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid #E2E2E2 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  font-family: inherit !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  box-shadow: none !important;
+  border: 1px solid #E2E2E2 !important;
+}
+
+.leaflet-popup-close-button {
+  color: #6B6B6B !important;
+  font-size: 20px !important;
+  width: 28px !important;
+  height: 28px !important;
+  top: 8px !important;
+  right: 8px !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #000000 !important;
+}
+
+/* Hide default leaflet zoom controls */
+.leaflet-control-zoom {
+  display: none !important;
+}
+
+/* Hide attribution on map for cleaner look */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* Activity pin — handled by inline styles and JS events */
+
+/* User location pulse */
+.user-location-pin {
+  z-index: 9000 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .leaflet-popup-content-wrapper {
+    background: #1A1A1A !important;
+    border-color: #333333 !important;
+  }
+  .leaflet-popup-tip {
+    background: #1A1A1A !important;
+    border-color: #333333 !important;
+  }
+  .leaflet-popup-close-button:hover {
+    color: #FFFFFF !important;
+  }
+}
