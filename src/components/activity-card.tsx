@@ -15,9 +15,10 @@ interface ActivityCardProps {
   activity: Activity;
   variant: "join" | "view";
   onAction: (activityId: string) => void;
+  unreadCount?: number;
 }
 
-export function ActivityCard({ activity, variant, onAction }: ActivityCardProps) {
+export function ActivityCard({ activity, variant, onAction, unreadCount = 0 }: ActivityCardProps) {
   const currentUser = useCurrentUser();
   const [justJoined, setJustJoined] = useState(false);
   const isFull = activity.playersJoined >= activity.playersNeeded;
@@ -116,6 +117,14 @@ export function ActivityCard({ activity, variant, onAction }: ActivityCardProps)
               </div>
             )}
           </div>
+
+          {/* Unread chat indicator */}
+          {unreadCount > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E6F9EF] dark:bg-[#001A0D]">
+              <span className="h-2 w-2 rounded-full bg-[#06C167] animate-pulse shrink-0" />
+              <span className="text-xs font-medium text-[#06C167]">New messages in chat</span>
+            </div>
+          )}
 
           {/* Action button — Uber "Details" style */}
           <div className="mt-2">

@@ -69,6 +69,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Fix date/time input visibility in dark mode */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    color-scheme: dark;
+  }
+}
+
 /* ========================================
    UBER BUTTONS
    Black background, white text, pill shape

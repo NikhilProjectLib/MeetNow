@@ -9,6 +9,7 @@ import { ArrowLeft, MapPin, Clock, Users, Calendar, Info } from "lucide-react";
 import { ActivityChat } from "@/components/activity-chat";
 import { OwnerControls } from "@/components/owner-controls";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useUnreadCounts } from "@/hooks/use-unread-counts";
 import { ShareButton } from "@/components/share-button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const currentUser = useCurrentUser();
   const { getActivity, joinActivity, leaveActivity } = useActivityStore();
+  const unreadCounts = useUnreadCounts();
   const activity = getActivity(id);
 
   if (!activity) {
@@ -158,7 +160,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Chat */}
-          <ActivityChat activityId={activity.id} isJoined={isJoined} />
+          <ActivityChat activityId={activity.id} isJoined={isJoined} unreadCount={unreadCounts[activity.id] || 0} />
         </div>
 
         {/* Sidebar */}

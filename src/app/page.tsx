@@ -9,6 +9,7 @@ import { ActivityMap } from "@/components/activity-map";
 import { ActivityCategory } from "@/types";
 import { ArrowRight, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useUnreadCounts } from "@/hooks/use-unread-counts";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -24,6 +25,7 @@ export default function HomePage() {
   const [locationQuery, setLocationQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const unreadCounts = useUnreadCounts();
 
   const dynamicCategories = useMemo(() => {
     const now = new Date();
@@ -249,7 +251,7 @@ export default function HomePage() {
                 )}
                 onClick={() => setSelectedActivityId(activity.id)}
               >
-                <ActivityCard activity={activity} variant="join" onAction={handleJoin} />
+                <ActivityCard activity={activity} variant="join" onAction={handleJoin} unreadCount={unreadCounts[activity.id] || 0} />
               </div>
             ))}
           </div>

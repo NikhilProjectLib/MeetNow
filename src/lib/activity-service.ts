@@ -54,8 +54,8 @@ export async function joinActivityInFirestore(
   activityId: string,
   player: Player
 ): Promise<void> {
-  const ref = doc(db, COLLECTION, activityId);
-  const snap = await getDoc(ref);
+  const actRef = doc(db, COLLECTION, activityId);
+  const snap = await getDoc(actRef);
   if (!snap.exists()) return;
 
   const data = snap.data();
@@ -63,10 +63,17 @@ export async function joinActivityInFirestore(
   if (players.some((p: Player) => p.id === player.id)) return;
   if (data.playersJoined >= data.playersNeeded) return;
 
-  await updateDoc(ref, {
+  await updateDoc(actRef, {
     players: [...players, player],
     playersJoined: (data.playersJoined || 0) + 1,
   });
+
+  // Notify the owner
+  if (data.createdBy && data.createdBy !== player.id) {
+    import("./notification-service").then(({ notifyOwnerOnJoin }) => {
+      notifyOwnerOnJoin(data.createdBy, player.name, activityId, data.name);
+    });
+  }
 }
 
 /**
@@ -76,18 +83,26 @@ export async function leaveActivityInFirestore(
   activityId: string,
   playerId: string
 ): Promise<void> {
-  const ref = doc(db, COLLECTION, activityId);
-  const snap = await getDoc(ref);
+  const actRef = doc(db, COLLECTION, activityId);
+  const snap = await getDoc(actRef);
   if (!snap.exists()) return;
 
   const data = snap.data();
   const players: Player[] = data.players || [];
-  if (!players.some((p: Player) => p.id === playerId)) return;
+  const leavingPlayer = players.find((p: Player) => p.id === playerId);
+  if (!leavingPlayer) return;
 
-  await updateDoc(ref, {
+  await updateDoc(actRef, {
     players: players.filter((p: Player) => p.id !== playerId),
     playersJoined: Math.max(0, (data.playersJoined || 1) - 1),
   });
+
+  // Notify the owner
+  if (data.createdBy && data.createdBy !== playerId) {
+    import("./notification-service").then(({ notifyOwnerOnLeave }) => {
+      notifyOwnerOnLeave(data.createdBy, leavingPlayer.name, activityId, data.name);
+    });
+  }
 }
 
 /**
@@ -97,7 +112,23 @@ export async function removePlayerInFirestore(
   activityId: string,
   playerId: string
 ): Promise<void> {
-  await leaveActivityInFirestore(activityId, playerId);
+  const actRef = doc(db, COLLECTION, activityId);
+  const snap = await getDoc(actRef);
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+  const players: Player[] = data.players || [];
+  if (!players.some((p: Player) => p.id === playerId)) return;
+
+  await updateDoc(actRef, {
+    players: players.filter((p: Player) => p.id !== playerId),
+    playersJoined: Math.max(0, (data.playersJoined || 1) - 1),
+  });
+
+  // Notify the removed player
+  import("./notification-service").then(({ notifyPlayerRemoved }) => {
+    notifyPlayerRemoved(playerId, activityId, data.name);
+  });
 }
 
 /**

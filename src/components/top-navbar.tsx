@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
+import { NotificationBell } from "@/components/notification-bell";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -51,8 +52,9 @@ export function TopNavbar() {
           </nav>
         </div>
 
-        {/* Right: Profile */}
-        <div className="flex items-center gap-4">
+        {/* Right: Notifications + Profile */}
+        <div className="flex items-center gap-2">
+          <NotificationBell />
           <Link
             href="/profile"
             className="flex items-center gap-2.5 px-3 py-1.5 rounded-full hover:bg-[#FFFFFF]/10 transition-colors"

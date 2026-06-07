@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useActivityStore } from "@/stores/activity-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useUnreadCounts } from "@/hooks/use-unread-counts";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Calendar, Clock, MapPin, Users, Ticket, LogOut } from "lucide-react";
@@ -14,6 +15,7 @@ export default function MyActivitiesPage() {
   const currentUser = useCurrentUser();
   const { activities, leaveActivity } = useActivityStore();
   const [activeTab, setActiveTab] = useState<Tab>("upcoming");
+  const unreadCounts = useUnreadCounts();
 
   const now = new Date();
 
@@ -155,13 +157,21 @@ export default function MyActivitiesPage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[0.9375rem] text-[#000000] dark:text-[#FFFFFF] truncate">{activity.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-[0.9375rem] text-[#000000] dark:text-[#FFFFFF] truncate">{activity.name}</p>
+                  </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[13px] text-[#6B6B6B]">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(activity.date)}</span>
                     <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{activity.time}</span>
                     <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{activity.location}</span>
                     <span className="flex items-center gap-1"><Users className="h-3 w-3" />{activity.playersJoined}/{activity.playersNeeded}</span>
                   </div>
+                  {unreadCounts[activity.id] > 0 && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#06C167] animate-pulse" />
+                      <span className="text-[11px] font-medium text-[#06C167]">New messages</span>
+                    </div>
+                  )}
                   {player?.ticketId && (
                     <span className="flex items-center gap-1 mt-1 text-[11px] text-[#6B6B6B] font-mono">
                       <Ticket className="h-3 w-3" />{player.ticketId}

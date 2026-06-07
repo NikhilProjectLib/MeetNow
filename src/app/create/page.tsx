@@ -248,14 +248,14 @@ export default function CreatePage() {
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {quickTimeSlots.map((slot) => (
                   <button key={slot.time} type="button" onClick={() => setForm({ ...form, time: slot.time })}
-                    className={cn("flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-all", form.time === slot.time ? "bg-[#000000] text-[#FFFFFF] dark:bg-[#FFFFFF] dark:text-[#000000]" : "bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] hover:border-[#000000] dark:hover:border-[#FFFFFF]")}>
+                    className={cn("flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-all", form.time === slot.time ? "bg-[#000000] text-[#FFFFFF] dark:bg-[#FFFFFF] dark:text-[#000000]" : "bg-[#F6F6F6] dark:bg-[#1A1A1A] text-[#000000] dark:text-[#FFFFFF] hover:bg-[#E2E2E2] dark:hover:bg-[#333333]")}>
                     <span>{slot.icon}</span><span>{slot.label}</span>
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-3">
                 <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })}
-                  className="px-4 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] outline-none focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF]" />
+                  className="px-4 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] outline-none focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF] [color-scheme:light] dark:[color-scheme:dark]" />
                 <span className="text-xs text-[#6B6B6B]">or pick a slot above</span>
               </div>
               {errors.time && <p className="text-xs text-[#E11900] mt-1">{errors.time}</p>}
