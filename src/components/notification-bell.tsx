@@ -77,7 +77,14 @@ export function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       {/* Bell button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const opening = !isOpen;
+          setIsOpen(opening);
+          // Auto mark all as read when opening
+          if (opening && currentUser?.id && unreadCount > 0) {
+            markAllAsRead(currentUser.id, notifications);
+          }
+        }}
         className="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#FFFFFF]/10 transition-colors"
       >
         <Bell className="h-5 w-5 text-[#FFFFFF]" />

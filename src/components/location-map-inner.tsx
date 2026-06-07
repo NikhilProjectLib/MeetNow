@@ -22,7 +22,7 @@ function MapEvents({ onMove }: { onMove: (lat: number, lng: number) => void }) {
 function RecenterMap({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
-    map.flyTo(center, map.getZoom(), { duration: 0.5 });
+    map.flyTo(center, map.getZoom(), { duration: 0.8 });
   }, [center, map]);
   return null;
 }
@@ -31,13 +31,17 @@ export default function LocationMapInner({ center, onMove }: LocationMapInnerPro
   return (
     <MapContainer
       center={center}
-      zoom={15}
+      zoom={16}
       style={{ width: "100%", height: "100%" }}
-      zoomControl={true}
+      zoomControl={false}
+      attributionControl={false}
     >
+      {/* Same Uber/Rapido style tiles */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; CARTO'
+        maxZoom={19}
+        subdomains="abcd"
       />
       <RecenterMap center={center} />
       <MapEvents onMove={onMove} />
