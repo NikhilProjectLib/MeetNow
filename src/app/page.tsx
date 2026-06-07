@@ -126,7 +126,7 @@ export default function HomePage() {
               </div>
               <input
                 type="text"
-                placeholder="Search location or activity"
+                placeholder="Search activity"
                 value={locationQuery}
                 onChange={(e) => { setLocationQuery(e.target.value); setShowSearchDropdown(true); }}
                 onFocus={() => { if (locationQuery.trim()) setShowSearchDropdown(true); }}
