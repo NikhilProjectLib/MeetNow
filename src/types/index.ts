@@ -28,18 +28,6 @@ export interface Activity {
   autoDeleteAfter?: string; // Duration label for display (e.g., "1 hour after event")
 }
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  location: string;
-  avatar: string;
-  stats: {
-    joined: number;
-    created: number;
-    rating: number;
-  };
-}
-
 export interface CreateActivityForm {
   name: string;
   location: string;

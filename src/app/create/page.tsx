@@ -107,7 +107,16 @@ export default function CreatePage() {
     const activityData = {
       ...form, emoji: categoryEmojis[form.category] || "✨",
       lat: lat || userLocation?.lat || 0, lng: lng || userLocation?.lng || 0,
-      distance: "0 km", playersJoined: 0, players: [], createdBy: currentUser?.id || "anonymous",
+      distance: "0 km",
+      playersJoined: 1,
+      players: [{
+        id: currentUser?.id || "anonymous",
+        name: currentUser?.name || "User",
+        avatar: currentUser?.avatar || "",
+        ticketId: `TKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        joinedAt: new Date().toISOString(),
+      }],
+      createdBy: currentUser?.id || "anonymous",
       ...(expiresAt && { expiresAt }), ...(autoDeleteAfter && { autoDeleteAfter }),
     };
 

@@ -203,7 +203,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
             )}
           </div>
 
-          {isOwner && !isPast && <OwnerControls activity={activity} />}
+          {isOwner && <OwnerControls activity={activity} />}
         </div>
       </div>
     </div>
