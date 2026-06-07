@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MapPin, Crosshair, Loader2, X, Search } from "lucide-react";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import dynamic from "next/dynamic";
@@ -77,18 +77,29 @@ export function MapLocationPicker({
     finally { setIsLocating(false); }
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = async (query?: string) => {
+    const q = query || searchQuery;
+    if (!q.trim()) return;
     setIsSearching(true);
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5&countrycodes=in`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1&countrycodes=in`
       );
       const data = await res.json();
       setSearchResults(data);
     } catch { /* */ }
     finally { setIsSearching(false); }
   };
+
+  // Live search as user types (debounced)
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => handleSearch(searchQuery), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSelectSearchResult = (result: { display_name: string; lat: string; lon: string }) => {
     const lat = parseFloat(result.lat);
