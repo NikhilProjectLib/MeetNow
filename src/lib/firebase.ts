@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getAuth } from "firebase/auth";
 
 // ⚠️ REPLACE THESE with your Firebase project config
 // Go to: Firebase Console → Project Settings → Your apps → Web app → Config
@@ -18,5 +19,6 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 const rtdb = getDatabase(app);
+const auth = getAuth(app);
 
-export { app, db, rtdb };
+export { app, db, rtdb, auth };

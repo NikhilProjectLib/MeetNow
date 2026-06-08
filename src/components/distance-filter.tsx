@@ -18,20 +18,18 @@ export function DistanceFilter() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <MapPin className="h-4 w-4" />
-        <span>Within:</span>
+      <div className="flex items-center gap-1.5 text-xs font-medium text-[#6B6B6B] shrink-0">
+        <MapPin className="h-3.5 w-3.5" />
+        <span>Within</span>
       </div>
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
         {radiusOptions.map((opt) => (
           <button
             key={opt.value}
             onClick={() => setRadiusKm(opt.value)}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
-              radiusKm === opt.value
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background border-border hover:border-primary/50 text-foreground"
+              "uber-chip text-xs shrink-0",
+              radiusKm === opt.value && "uber-chip-active"
             )}
           >
             {opt.label}
@@ -39,8 +37,8 @@ export function DistanceFilter() {
         ))}
       </div>
       {!userLocation && (
-        <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-          📍 Enable location for distance filter
+        <span className="text-[10px] text-[#F9A825] bg-[#FFF8E1] dark:bg-[#1A1500] px-2 py-1 rounded-full shrink-0">
+          📍 Enable location
         </span>
       )}
     </div>

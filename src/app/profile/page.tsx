@@ -43,10 +43,34 @@ export default function ProfilePage() {
 
   const handleToggleDarkMode = () => {
     setDarkMode(!darkMode);
-    // Note: actual dark mode is handled by system preference via CSS
     toast.info(darkMode ? "Light mode (follows system)" : "Dark mode (follows system)", {
       description: "Theme follows your system preference"
     });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Convert to base64 data URL (simple approach, no storage needed)
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const { updateProfile } = await import("firebase/auth");
+        const { auth } = await import("@/lib/firebase");
+        if (auth.currentUser) {
+          // For a real app you'd upload to Firebase Storage and get a URL
+          // Using a small placeholder approach — update display in auth
+          await updateProfile(auth.currentUser, { photoURL: reader.result as string });
+          toast.success("Profile photo updated!");
+          // Force re-render
+          window.location.reload();
+        }
+      } catch {
+        toast.error("Failed to update photo");
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -54,13 +78,25 @@ export default function ProfilePage() {
 
       {/* Profile Header */}
       <div className="flex items-center gap-4 pb-6 border-b border-[#E2E2E2] dark:border-[#333333]">
-        {user?.photoURL ? (
-          <img src={user.photoURL} alt="" className="h-16 w-16 rounded-full object-cover" />
-        ) : (
-          <div className="h-16 w-16 rounded-full bg-[#F6F6F6] dark:bg-[#1A1A1A] flex items-center justify-center text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">
-            {initial}
-          </div>
-        )}
+        {/* Avatar with upload */}
+        <div className="relative group">
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="" className="h-16 w-16 rounded-full object-cover" />
+          ) : (
+            <div className="h-16 w-16 rounded-full bg-[#F6F6F6] dark:bg-[#1A1A1A] flex items-center justify-center text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">
+              {initial}
+            </div>
+          )}
+          <label className="absolute inset-0 rounded-full bg-[#000000]/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+            <span className="text-[#FFFFFF] text-xs font-medium">Edit</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
+          </label>
+        </div>
         <div>
           <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{displayName}</h1>
           <p className="text-sm text-[#6B6B6B]">{user?.email || ""}</p>

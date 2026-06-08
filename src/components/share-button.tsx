@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Share2, Copy, Check, MessageCircle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Share2, Copy, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Activity } from "@/types";
 
@@ -12,6 +11,7 @@ interface ShareButtonProps {
 
 export function ShareButton({ activity }: ShareButtonProps) {
   const [showOptions, setShowOptions] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/activity/${activity.id}`
@@ -19,10 +19,21 @@ export function ShareButton({ activity }: ShareButtonProps) {
 
   const shareText = `Join me for "${activity.name}" on MeetNow! ${activity.date} at ${activity.time}, ${activity.location}. ${activity.playersNeeded - activity.playersJoined} spots left!`;
 
+  // Close on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copied!", { description: "Share it with your friends" });
+      toast.success("Link copied!");
     } catch {
       toast.error("Could not copy link");
     }
@@ -46,24 +57,27 @@ export function ShareButton({ activity }: ShareButtonProps) {
   };
 
   return (
-    <div className="relative">
-      <Button variant="outline" size="sm" onClick={handleNativeShare} className="gap-1.5">
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={handleNativeShare}
+        className="flex items-center gap-1.5 px-4 py-2 bg-[#F6F6F6] dark:bg-[#1A1A1A] rounded-full text-[0.8125rem] font-medium text-[#000000] dark:text-[#FFFFFF] hover:bg-[#E2E2E2] dark:hover:bg-[#333333] transition-colors"
+      >
         <Share2 className="h-4 w-4" />
         Share
-      </Button>
+      </button>
 
       {showOptions && (
-        <div className="absolute right-0 top-full mt-2 bg-card border rounded-lg shadow-xl p-2 z-50 min-w-[160px]">
+        <div className="absolute right-0 top-full mt-2 bg-[#FFFFFF] dark:bg-[#1A1A1A] border border-[#E2E2E2] dark:border-[#333333] rounded-xl shadow-xl p-1.5 z-50 min-w-[160px]">
           <button
             onClick={handleWhatsApp}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
+            className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg hover:bg-[#F6F6F6] dark:hover:bg-[#262626] transition-colors text-[#000000] dark:text-[#FFFFFF]"
           >
-            <MessageCircle className="h-4 w-4 text-green-600" />
+            <MessageCircle className="h-4 w-4 text-[#06C167]" />
             WhatsApp
           </button>
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
+            className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg hover:bg-[#F6F6F6] dark:hover:bg-[#262626] transition-colors text-[#000000] dark:text-[#FFFFFF]"
           >
             <Copy className="h-4 w-4" />
             Copy Link

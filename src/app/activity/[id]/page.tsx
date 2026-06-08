@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { categoryLabels } from "@/lib/mock-data";
 import { ArrowLeft, MapPin, Clock, Users, Calendar, Info } from "lucide-react";
 import { ActivityChat } from "@/components/activity-chat";
+import { ActivityLocationMap } from "@/components/activity-location-map";
 import { OwnerControls } from "@/components/owner-controls";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useUnreadCounts } from "@/hooks/use-unread-counts";
@@ -158,6 +159,13 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
               ))}
             </div>
           </div>
+
+          {/* Location Map */}
+          {activity.lat && activity.lng && activity.lat !== 0 && (
+            <div className="rounded-2xl overflow-hidden border border-[#E2E2E2] dark:border-[#333333] h-[200px]">
+              <ActivityLocationMap lat={activity.lat} lng={activity.lng} name={activity.name} emoji={activity.emoji} />
+            </div>
+          )}
 
           {/* Chat */}
           <ActivityChat activityId={activity.id} isJoined={isJoined} unreadCount={unreadCounts[activity.id] || 0} />

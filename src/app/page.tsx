@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useActivityStore } from "@/stores/activity-store";
 import { ActivityCard } from "@/components/activity-card";
 import { CategoryFilter } from "@/components/category-filter";
+import { DistanceFilter } from "@/components/distance-filter";
 import { ActivityMap } from "@/components/activity-map";
 import { ActivityCategory } from "@/types";
 import { ArrowRight, Clock, ChevronRight, ChevronLeft } from "lucide-react";
@@ -19,7 +20,7 @@ const ITEMS_PER_PAGE = 6;
 export default function HomePage() {
   const router = useRouter();
   const currentUser = useCurrentUser();
-  const { getActivities, joinActivity, activities } = useActivityStore();
+  const { getActivities, getNearbyActivities, joinActivity, activities } = useActivityStore();
   const [activeCategory, setActiveCategory] = useState<ActivityCategory | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const [locationQuery, setLocationQuery] = useState("");
@@ -36,7 +37,7 @@ export default function HomePage() {
     return Array.from(cats);
   }, [activities]);
 
-  const filtered = getActivities(activeCategory ?? undefined);
+  const filtered = getNearbyActivities(activeCategory ?? undefined);
   const now = new Date();
 
   const upcomingActivities = filtered.filter((a) => {
@@ -213,13 +214,16 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Category Filter */}
+      {/* Category Filter + Distance */}
       <div className="px-6 lg:px-14 xl:px-20 py-4 border-y border-[#E2E2E2] dark:border-[#333333] bg-[#FFFFFF] dark:bg-[#000000] sticky top-16 z-20">
-        <CategoryFilter
-          categories={dynamicCategories}
-          activeCategory={activeCategory}
-          onSelect={setActiveCategory}
-        />
+        <div className="flex flex-col gap-3">
+          <CategoryFilter
+            categories={dynamicCategories}
+            activeCategory={activeCategory}
+            onSelect={setActiveCategory}
+          />
+          <DistanceFilter />
+        </div>
       </div>
 
       {/* Activity Cards with Pagination */}
