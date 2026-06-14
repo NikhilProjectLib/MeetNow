@@ -6,7 +6,7 @@ import { AppShell } from "@/components/app-shell";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MeetNow - Find Nearby Activities",
+  title: "Meelo - Find Nearby Activities",
   description: "Discover, create, and join nearby activities in real-time",
 };
 

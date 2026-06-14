@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2, Zap } from "lucide-react";
 
-const publicPaths = ["/login"];
+const publicPaths = ["/login", "/privacy", "/terms", "/contact"];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
@@ -13,17 +13,23 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const isPublicPath = publicPaths.includes(pathname);
+  const isLoginPage = pathname === "/login";
 
   useEffect(() => {
     if (!isLoading && !user && !isPublicPath) {
       router.push("/login");
     }
-    if (!isLoading && user && isPublicPath) {
+    if (!isLoading && user && isLoginPage) {
       router.push("/");
     }
-  }, [user, isLoading, isPublicPath, router]);
+  }, [user, isLoading, isPublicPath, isLoginPage, router]);
 
-  // Loading state
+  // Public pages render immediately — no auth check needed
+  if (isPublicPath) {
+    return <>{children}</>;
+  }
+
+  // Loading state (only for protected pages)
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -36,12 +42,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Not logged in and on protected page — show nothing while redirecting
-  if (!user && !isPublicPath) {
-    return null;
-  }
-
-  // Logged in and on login page — show nothing while redirecting
-  if (user && isPublicPath) {
+  if (!user) {
     return null;
   }
 

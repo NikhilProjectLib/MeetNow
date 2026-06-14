@@ -168,7 +168,13 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
           )}
 
           {/* Chat */}
-          <ActivityChat activityId={activity.id} isJoined={isJoined} unreadCount={unreadCounts[activity.id] || 0} />
+          <ActivityChat
+            activityId={activity.id}
+            activityName={activity.name}
+            participantIds={activity.players.map((p: { id: string }) => p.id)}
+            isJoined={isJoined}
+            unreadCount={unreadCounts[activity.id] || 0}
+          />
         </div>
 
         {/* Sidebar */}

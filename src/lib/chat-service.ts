@@ -9,6 +9,7 @@ import {
   limitToLast,
 } from "firebase/database";
 import { rtdb } from "./firebase";
+import { sendNotification } from "./notification-service";
 
 export interface ChatMessage {
   id: string;
@@ -24,6 +25,7 @@ const db = rtdb;
 
 /**
  * Send a message to an activity's group chat.
+ * Also sends a notification to all other participants.
  */
 export async function sendMessage(
   activityId: string,
@@ -33,7 +35,8 @@ export async function sendMessage(
     senderAvatar: string;
     text: string;
     type?: "text" | "system";
-  }
+  },
+  notifyParticipants?: { participantIds: string[]; activityName: string }
 ): Promise<void> {
   const chatRef = ref(db, `chats/${activityId}/messages`);
   await push(chatRef, {
@@ -41,6 +44,22 @@ export async function sendMessage(
     type: message.type || "text",
     timestamp: serverTimestamp(),
   });
+
+  // Send notification to other participants about new message
+  if (notifyParticipants && message.type !== "system") {
+    const otherParticipants = notifyParticipants.participantIds.filter(
+      (id) => id !== message.senderId
+    );
+    for (const userId of otherParticipants) {
+      await sendNotification(userId, {
+        type: "chat",
+        title: "New message",
+        message: `${message.senderName} sent a message in "${notifyParticipants.activityName}"`,
+        activityId,
+        activityName: notifyParticipants.activityName,
+      }).catch(() => {}); // Don't block on notification failures
+    }
+  }
 }
 
 /**

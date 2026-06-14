@@ -7,6 +7,7 @@ import { FirebaseProvider } from "@/components/firebase-provider";
 import { TopNavbar } from "@/components/top-navbar";
 import { MobileNav } from "@/components/mobile-nav";
 import { PageTransition } from "@/components/page-transition";
+import { Footer } from "@/components/footer";
 import { useAuthStore } from "@/stores/auth-store";
 import { Toaster } from "sonner";
 
@@ -14,10 +15,26 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore();
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
+  const isLegalPage = ["/privacy", "/terms", "/contact"].includes(pathname);
+
+  // Legal pages — no auth required, no nav, just content + footer
+  if (isLegalPage) {
+    return (
+      <>
+        <PageTransition>{children}</PageTransition>
+        <Footer />
+      </>
+    );
+  }
 
   // Login page — no nav
   if (isLoginPage || !user) {
-    return <PageTransition>{children}</PageTransition>;
+    return (
+      <>
+        <PageTransition>{children}</PageTransition>
+        <Footer />
+      </>
+    );
   }
 
   // Authenticated layout: Top navbar + content + mobile bottom nav

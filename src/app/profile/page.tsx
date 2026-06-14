@@ -74,7 +74,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-6 lg:px-14 xl:px-20 py-8 bg-[#FFFFFF] dark:bg-[#000000] min-h-screen max-w-2xl mx-auto">
+    <div className="flex flex-col gap-6 px-6 lg:px-14 xl:px-20 py-8 bg-[#FFFFFF] dark:bg-[#000000] min-h-screen">
 
       {/* Profile Header */}
       <div className="flex items-center gap-4 pb-6 border-b border-[#E2E2E2] dark:border-[#333333]">
@@ -211,7 +211,7 @@ export default function ProfilePage() {
           </button>
 
           {/* Privacy */}
-          <button className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
+          <Link href="/privacy" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
             <div className="flex items-center gap-3">
               <Shield className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <div>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -228,21 +228,21 @@ export default function ProfilePage() {
       <div>
         <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">Support</h2>
         <div className="flex flex-col">
-          <button className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
+          <Link href="/contact" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
             <div className="flex items-center gap-3">
               <HelpCircle className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Help & FAQ</p>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
-          </button>
+          </Link>
 
-          <button className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
+          <Link href="/contact" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
             <div className="flex items-center gap-3">
               <MessageSquare className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Send Feedback</p>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -256,7 +256,7 @@ export default function ProfilePage() {
       </button>
 
       {/* App version */}
-      <p className="text-center text-[11px] text-[#6B6B6B] pb-4">MeetNow v1.0.0</p>
+      <p className="text-center text-[11px] text-[#6B6B6B] pb-4">Meelo v1.0.0</p>
     </div>
   );
 }

@@ -9,11 +9,13 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 
 interface ActivityChatProps {
   activityId: string;
+  activityName?: string;
+  participantIds?: string[];
   isJoined: boolean;
   unreadCount?: number;
 }
 
-export function ActivityChat({ activityId, isJoined, unreadCount = 0 }: ActivityChatProps) {
+export function ActivityChat({ activityId, activityName, participantIds, isJoined, unreadCount = 0 }: ActivityChatProps) {
   const currentUser = useCurrentUser();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -52,7 +54,7 @@ export function ActivityChat({ activityId, isJoined, unreadCount = 0 }: Activity
         senderAvatar: currentUser?.avatar || "",
         text,
         type: "text",
-      });
+      }, participantIds && activityName ? { participantIds, activityName } : undefined);
     } catch (err) {
       console.error("Failed to send message:", err);
       setNewMessage(text);
