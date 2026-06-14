@@ -6,6 +6,7 @@ import { updateLastSeen } from "@/lib/chat-unread-service";
 import { Send, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface ActivityChatProps {
   activityId: string;
@@ -17,6 +18,7 @@ interface ActivityChatProps {
 
 export function ActivityChat({ activityId, activityName, participantIds, isJoined, unreadCount = 0 }: ActivityChatProps) {
   const currentUser = useCurrentUser();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -91,11 +93,11 @@ export function ActivityChat({ activityId, activityName, participantIds, isJoine
           <MessageCircle className="h-5 w-5 text-[#FFFFFF] dark:text-[#000000]" />
         </div>
         <div className="flex-1 text-left">
-          <p className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">Group Chat</p>
+          <p className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">{t.chat_title}</p>
           <p className="text-xs text-[#6B6B6B]">
             {unreadCount > 0
-              ? `${unreadCount} new message${unreadCount > 1 ? "s" : ""}`
-              : messages.length > 0 ? `${messages.length} messages` : "No messages yet"}
+              ? `${unreadCount} ${t.chat_new_messages}`
+              : messages.length > 0 ? `${messages.length} ${t.chat_messages}` : t.chat_no_messages}
           </p>
         </div>
         {unreadCount > 0 ? (
@@ -116,8 +118,8 @@ export function ActivityChat({ activityId, activityName, participantIds, isJoine
             <MessageCircle className="h-4 w-4 text-[#FFFFFF] dark:text-[#000000]" />
           </div>
           <div>
-            <span className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">Group Chat</span>
-            <span className="text-xs text-[#6B6B6B] ml-2">{messages.length} messages</span>
+            <span className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">{t.chat_title}</span>
+            <span className="text-xs text-[#6B6B6B] ml-2">{messages.length} {t.chat_messages}</span>
           </div>
         </div>
         <button
@@ -135,8 +137,8 @@ export function ActivityChat({ activityId, activityName, participantIds, isJoine
             <div className="h-12 w-12 rounded-full bg-[#F6F6F6] dark:bg-[#1A1A1A] flex items-center justify-center mb-3">
               <MessageCircle className="h-6 w-6 text-[#6B6B6B]" />
             </div>
-            <p className="text-sm font-medium text-[#000000] dark:text-[#FFFFFF]">No messages yet</p>
-            <p className="text-xs text-[#6B6B6B] mt-1">Start the conversation!</p>
+            <p className="text-sm font-medium text-[#000000] dark:text-[#FFFFFF]">{t.chat_no_messages}</p>
+            <p className="text-xs text-[#6B6B6B] mt-1">{t.chat_start}</p>
           </div>
         )}
 
@@ -202,7 +204,7 @@ export function ActivityChat({ activityId, activityName, participantIds, isJoine
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a message..."
+            placeholder={t.chat_placeholder}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -219,7 +221,7 @@ export function ActivityChat({ activityId, activityName, participantIds, isJoine
         </div>
       ) : (
         <div className="px-4 py-3 border-t border-[#E2E2E2] dark:border-[#333333] text-center bg-[#F6F6F6] dark:bg-[#1A1A1A]">
-          <p className="text-xs text-[#6B6B6B]">Join this activity to send messages</p>
+          <p className="text-xs text-[#6B6B6B]">{t.chat_join_to_send}</p>
         </div>
       )}
     </div>

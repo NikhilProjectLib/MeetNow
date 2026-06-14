@@ -4,21 +4,23 @@ import { useState } from "react";
 import { useActivityStore } from "@/stores/activity-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useTranslation } from "@/hooks/use-translation";
 import { signOut } from "@/lib/auth-service";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import {
-  Calendar, Trophy, LogOut, ChevronRight, MapPin, Globe, Moon, Sun,
+  Calendar, Trophy, LogOut, ChevronRight, MapPin, Moon, Sun,
   Shield, Bell, HelpCircle, MessageSquare, Navigation
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { LanguageSelector } from "@/components/language-selector";
 
 export default function ProfilePage() {
   const { activities, userLocation, setUserLocation } = useActivityStore();
   const { user } = useAuthStore();
   const currentUser = useCurrentUser();
+  const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState("English");
   const [isLocating, setIsLocating] = useState(false);
 
   const joinedActivities = activities.filter((a) =>
@@ -34,9 +36,9 @@ export default function ProfilePage() {
     try {
       const pos = await getCurrentPosition();
       setUserLocation(pos);
-      toast.success("Location updated", { description: `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}` });
+      toast.success(t.location_updated, { description: `${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}` });
     } catch {
-      toast.error("Could not get location", { description: "Please enable location access" });
+      toast.error(t.location_error, { description: t.location_enable });
     }
     setIsLocating(false);
   };
@@ -107,24 +109,24 @@ export default function ProfilePage() {
       <div className="flex gap-8 pb-6 border-b border-[#E2E2E2] dark:border-[#333333]">
         <div>
           <span className="text-3xl font-black text-[#000000] dark:text-[#FFFFFF]">{joinedActivities.length}</span>
-          <p className="text-sm text-[#6B6B6B]">Joined</p>
+          <p className="text-sm text-[#6B6B6B]">{t.profile_joined}</p>
         </div>
         <div>
           <span className="text-3xl font-black text-[#000000] dark:text-[#FFFFFF]">{createdActivities.length}</span>
-          <p className="text-sm text-[#6B6B6B]">Created</p>
+          <p className="text-sm text-[#6B6B6B]">{t.profile_created}</p>
         </div>
       </div>
 
       {/* Account Section */}
       <div>
-        <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">Account</h2>
+        <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">{t.nav_profile}</h2>
         <div className="flex flex-col">
           <Link href="/my-activities" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors">
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">My Activities</p>
-                <p className="text-xs text-[#6B6B6B]">{joinedActivities.length} joined, {createdActivities.length} created</p>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.profile_my_activities}</p>
+                <p className="text-xs text-[#6B6B6B]">{joinedActivities.length} {t.profile_joined}, {createdActivities.length} {t.profile_created}</p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
@@ -134,8 +136,8 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Trophy className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Create Activity</p>
-                <p className="text-xs text-[#6B6B6B]">Start a new event or meetup</p>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.profile_create_activity}</p>
+                <p className="text-xs text-[#6B6B6B]">{t.profile_start_event}</p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
@@ -145,7 +147,7 @@ export default function ProfilePage() {
 
       {/* Settings Section */}
       <div>
-        <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">Settings</h2>
+        <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">{t.settings_title}</h2>
         <div className="flex flex-col">
           {/* My Location */}
           <button
@@ -156,13 +158,13 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Navigation className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">My Location</p>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.settings_location}</p>
                 <p className="text-xs text-[#6B6B6B]">
                   {isLocating
-                    ? "Updating..."
+                    ? t.settings_location_updating
                     : userLocation
                     ? `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`
-                    : "Tap to update location"}
+                    : t.settings_location_update}
                 </p>
               </div>
             </div>
@@ -170,16 +172,7 @@ export default function ProfilePage() {
           </button>
 
           {/* Language */}
-          <button className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
-              <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Language</p>
-                <p className="text-xs text-[#6B6B6B]">{language}</p>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
-          </button>
+          <LanguageSelector variant="full" />
 
           {/* Screen Mode */}
           <button
@@ -189,8 +182,8 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               {darkMode ? <Moon className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" /> : <Sun className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />}
               <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Screen Mode</p>
-                <p className="text-xs text-[#6B6B6B]">{darkMode ? "Dark" : "Light"} (follows system)</p>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.settings_dark_mode}</p>
+                <p className="text-xs text-[#6B6B6B]">{darkMode ? t.settings_dark : t.settings_light} ({t.settings_follows_system})</p>
               </div>
             </div>
             <div className={`w-10 h-6 rounded-full flex items-center px-0.5 transition-colors ${darkMode ? "bg-[#06C167] justify-end" : "bg-[#E2E2E2] dark:bg-[#333333] justify-start"}`}>
@@ -203,8 +196,8 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Bell className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Notifications</p>
-                <p className="text-xs text-[#6B6B6B]">Push & email alerts</p>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.settings_notifications}</p>
+                <p className="text-xs text-[#6B6B6B]">{t.settings_notifications_desc}</p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
@@ -215,8 +208,8 @@ export default function ProfilePage() {
             <div className="flex items-center gap-3">
               <Shield className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
               <div>
-                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Privacy & Security</p>
-                <p className="text-xs text-[#6B6B6B]">Manage your data</p>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.settings_privacy}</p>
+                <p className="text-xs text-[#6B6B6B]">{t.settings_privacy_desc}</p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
@@ -226,12 +219,12 @@ export default function ProfilePage() {
 
       {/* Support Section */}
       <div>
-        <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">Support</h2>
+        <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">{t.support_title}</h2>
         <div className="flex flex-col">
           <Link href="/contact" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
             <div className="flex items-center gap-3">
               <HelpCircle className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
-              <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Help & FAQ</p>
+              <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.support_help}</p>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
           </Link>
@@ -239,7 +232,7 @@ export default function ProfilePage() {
           <Link href="/contact" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
             <div className="flex items-center gap-3">
               <MessageSquare className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />
-              <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Send Feedback</p>
+              <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">{t.support_feedback}</p>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
           </Link>
@@ -252,11 +245,11 @@ export default function ProfilePage() {
         className="flex items-center gap-3 py-4 -mx-4 px-4 rounded-lg hover:bg-[#FFF0ED] dark:hover:bg-[#1A0500] transition-colors mt-2"
       >
         <LogOut className="h-5 w-5 text-[#E11900]" />
-        <span className="text-[0.9375rem] font-medium text-[#E11900]">Sign Out</span>
+        <span className="text-[0.9375rem] font-medium text-[#E11900]">{t.sign_out}</span>
       </button>
 
       {/* App version */}
-      <p className="text-center text-[11px] text-[#6B6B6B] pb-4">Meelo v1.0.0</p>
+      <p className="text-center text-[11px] text-[#6B6B6B] pb-4">{t.version}</p>
     </div>
   );
 }

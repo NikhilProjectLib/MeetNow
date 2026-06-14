@@ -5,17 +5,19 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { NotificationBell } from "@/components/notification-bell";
-
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Explore", href: "/explore" },
-  { label: "Create", href: "/create" },
-  { label: "Activity", href: "/my-activities" },
-];
+import { useTranslation } from "@/hooks/use-translation";
 
 export function TopNavbar() {
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
+
+  const navLinks = [
+    { label: t.nav_home, href: "/" },
+    { label: t.nav_explore, href: "/explore" },
+    { label: t.nav_create, href: "/create" },
+    { label: t.nav_activity, href: "/my-activities" },
+  ];
 
   const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initial = displayName[0]?.toUpperCase() || "U";
@@ -27,10 +29,10 @@ export function TopNavbar() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link href="/" className="text-xl font-black tracking-tight text-[#FFFFFF] hover:opacity-80 transition-opacity">
-            MeetNow
+            {t.app_name}
           </Link>
 
-          {/* Nav links — Uber style: simple text links */}
+          {/* Nav links */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;

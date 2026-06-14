@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/auth-service";
 import { Zap, Mail, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { LanguageSelector } from "@/components/language-selector";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +25,7 @@ export default function LoginPage() {
       await signInWithGoogle();
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "Google sign-in failed");
+      setError(err.message || t.google_signin_failed);
     } finally {
       setIsLoading(false);
     }
@@ -34,18 +37,18 @@ export default function LoginPage() {
     setError("");
     try {
       if (mode === "signup") {
-        if (!name.trim()) { setError("Name is required"); setIsLoading(false); return; }
+        if (!name.trim()) { setError(t.name_required); setIsLoading(false); return; }
         await signUpWithEmail(email, password, name);
       } else {
         await signInWithEmail(email, password);
       }
       router.push("/");
     } catch (err: any) {
-      const msg = err.code === "auth/user-not-found" ? "No account found with this email"
-        : err.code === "auth/wrong-password" ? "Incorrect password"
-        : err.code === "auth/email-already-in-use" ? "Email already registered. Try logging in."
-        : err.code === "auth/weak-password" ? "Password must be at least 6 characters"
-        : err.message || "Something went wrong";
+      const msg = err.code === "auth/user-not-found" ? t.no_account_found
+        : err.code === "auth/wrong-password" ? t.incorrect_password
+        : err.code === "auth/email-already-in-use" ? t.email_already_used
+        : err.code === "auth/weak-password" ? t.weak_password
+        : err.message || t.something_went_wrong;
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -53,7 +56,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#FFFFFF] dark:bg-[#000000]">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#FFFFFF] dark:bg-[#000000] relative">
+      {/* Language selector — top right */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSelector variant="minimal" />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,8 +78,8 @@ export default function LoginPage() {
           >
             <Zap className="h-7 w-7 text-[#FFFFFF] dark:text-[#000000]" />
           </motion.div>
-          <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">MeetNow</h1>
-          <p className="text-[#6B6B6B] text-sm mt-1">Find your crew, join the action</p>
+          <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{t.app_name}</h1>
+          <p className="text-[#6B6B6B] text-sm mt-1">{t.app_tagline}</p>
         </div>
 
         {/* Card */}
@@ -88,7 +96,7 @@ export default function LoginPage() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Continue with Google
+            {t.continue_with_google}
           </button>
 
           {/* Divider */}
@@ -97,7 +105,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-[#E2E2E2] dark:border-[#333333]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-[#F6F6F6] dark:bg-[#1A1A1A] px-3 text-[#6B6B6B]">or</span>
+              <span className="bg-[#F6F6F6] dark:bg-[#1A1A1A] px-3 text-[#6B6B6B]">{t.or}</span>
             </div>
           </div>
 
@@ -106,7 +114,7 @@ export default function LoginPage() {
             {mode === "signup" && (
               <input
                 type="text"
-                placeholder="Full name"
+                placeholder={t.name_placeholder}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
@@ -115,7 +123,7 @@ export default function LoginPage() {
             )}
             <input
               type="email"
-              placeholder="Email address"
+              placeholder={t.email_placeholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -124,7 +132,7 @@ export default function LoginPage() {
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder={t.password_placeholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
@@ -147,7 +155,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   <Mail className="h-4 w-4" />
-                  {mode === "login" ? "Sign In" : "Create Account"}
+                  {mode === "login" ? t.sign_in : t.create_account}
                 </>
               )}
             </button>
@@ -155,13 +163,13 @@ export default function LoginPage() {
 
           {/* Toggle */}
           <p className="text-center text-sm text-[#6B6B6B] mt-4">
-            {mode === "login" ? "New here? " : "Already have an account? "}
+            {mode === "login" ? t.new_here + " " : t.already_have_account + " "}
             <button
               type="button"
               onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}
               className="text-[#000000] dark:text-[#FFFFFF] font-semibold hover:underline"
             >
-              {mode === "login" ? "Create an account" : "Sign in"}
+              {mode === "login" ? t.create_account : t.sign_in}
             </button>
           </p>
         </div>
