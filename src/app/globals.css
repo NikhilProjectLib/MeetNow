@@ -455,3 +455,30 @@ input[type="datetime-local"] {
     background: #444444 !important;
   }
 }
+
+/* ========================================
+   ADMIN PANEL STYLES
+   ======================================== */
+
+.admin-input {
+  padding: 0.5rem 0.75rem;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E2E2;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: #000000;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.admin-input:focus {
+  box-shadow: 0 0 0 2px #7C3AED;
+}
+
+@media (prefers-color-scheme: dark) {
+  .admin-input {
+    background-color: #000000;
+    border-color: #333333;
+    color: #FFFFFF;
+  }
+}

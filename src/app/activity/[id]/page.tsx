@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useActivityStore } from "@/stores/activity-store";
 import { Button } from "@/components/ui/button";
 import { categoryLabels } from "@/lib/mock-data";
-import { ArrowLeft, MapPin, Clock, Users, Calendar, Info } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Calendar, Info, Crown } from "lucide-react";
 import { ActivityChat } from "@/components/activity-chat";
 import { ActivityLocationMap } from "@/components/activity-location-map";
 import { OwnerControls } from "@/components/owner-controls";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useUnreadCounts } from "@/hooks/use-unread-counts";
+import { usePremium } from "@/hooks/use-premium";
 import { ShareButton } from "@/components/share-button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,8 @@ import { cn } from "@/lib/utils";
 export default function ActivityDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const currentUser = useCurrentUser();
-  const { getActivity, joinActivity, leaveActivity } = useActivityStore();
+  const { getActivity, joinActivity, leaveActivity, activities } = useActivityStore();
+  const { isPremium, limits } = usePremium();
   const unreadCounts = useUnreadCounts();
   const activity = getActivity(id);
 
@@ -52,8 +54,20 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
   const isFull = activity.playersJoined >= activity.playersNeeded;
   const capacityPercent = Math.round((activity.playersJoined / activity.playersNeeded) * 100);
 
+  // Count current joined activities for limit check
+  const joinedCount = activities.filter(
+    (a) => currentUser && a.players.some((p) => p.id === currentUser.id)
+  ).length;
+  const canJoin = joinedCount < limits.maxJoinedActivities;
+
   const handleJoin = () => {
     if (!currentUser) return;
+    if (!canJoin) {
+      toast.error("Join limit reached", {
+        description: `Free users can join up to ${limits.maxJoinedActivities} activities. Refer friends to get Premium!`,
+      });
+      return;
+    }
     joinActivity(activity.id, { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar });
     toast.success("You joined!", { description: activity.name });
   };

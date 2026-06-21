@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useActivityStore } from "@/stores/activity-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { usePremium } from "@/hooks/use-premium";
 import { validateCreateForm } from "@/lib/validators";
 import { CreateActivityForm } from "@/types";
 import {
@@ -15,14 +16,17 @@ import {
   autoDeleteOptions,
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Calendar, Clock, Users, Sparkles } from "lucide-react";
+import { Plus, Search, Calendar, Clock, Users, Sparkles, Crown, Lock } from "lucide-react";
 import { CalendarPicker } from "@/components/calendar-picker";
 import { LocationPicker } from "@/components/location-picker";
 import { SuccessModal } from "@/components/success-modal";
+import Link from "next/link";
+import { toast } from "sonner";
 
 export default function CreatePage() {
   const currentUser = useCurrentUser();
   const { addActivity, activities, isFirebaseConnected, userLocation } = useActivityStore();
+  const { isPremium, limits } = usePremium();
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [categorySearch, setCategorySearch] = useState("");
@@ -62,6 +66,13 @@ export default function CreatePage() {
     name: "", location: "", date: "", time: "", playersNeeded: 10, category: "cricket", description: "",
   });
 
+  // Check daily creation limit for free users
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayCreatedCount = activities.filter(
+    (a) => a.createdBy === currentUser?.id && a.date === todayStr
+  ).length;
+  const canCreate = todayCreatedCount < limits.maxActivitiesPerDay;
+
   const today = new Date();
   const getDateString = (daysFromNow: number) => {
     const d = new Date(today); d.setDate(d.getDate() + daysFromNow); return d.toISOString().split("T")[0];
@@ -91,6 +102,15 @@ export default function CreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Free user daily limit check
+    if (!canCreate) {
+      toast.error("Daily limit reached", {
+        description: `Free users can create ${limits.maxActivitiesPerDay} activities per day. Upgrade to Premium for unlimited!`,
+      });
+      return;
+    }
+
     const validation = validateCreateForm(form);
     if (!validation.valid) { setErrors(validation.errors); return; }
     setErrors({}); setIsSubmitting(true);
@@ -138,6 +158,31 @@ export default function CreatePage() {
         )}
       </div>
 
+      {/* Free plan limit indicator */}
+      {!isPremium && (
+        <div className="flex items-center justify-between p-4 rounded-xl bg-[#F6F6F6] dark:bg-[#1A1A1A] border border-[#E2E2E2] dark:border-[#333333]">
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1">
+              {Array.from({ length: limits.maxActivitiesPerDay }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    i < todayCreatedCount ? "bg-[#000000] dark:bg-[#FFFFFF]" : "bg-[#E2E2E2] dark:bg-[#333333]"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-[#6B6B6B]">
+              {todayCreatedCount}/{limits.maxActivitiesPerDay} created today
+            </span>
+          </div>
+          <Link href="/referral" className="flex items-center gap-1.5 text-xs font-semibold text-[#7C3AED] hover:underline">
+            <Crown className="h-3.5 w-3.5" />
+            Get Unlimited
+          </Link>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Form */}
         <div className="lg:col-span-2">
@@ -159,9 +204,15 @@ export default function CreatePage() {
             <div className="p-5 rounded-2xl bg-[#F6F6F6] dark:bg-[#1A1A1A]">
               <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">Category</label>
-                <button type="button" onClick={() => setShowCustomInput(!showCustomInput)} className="text-xs text-[#000000] dark:text-[#FFFFFF] hover:underline flex items-center gap-1">
-                  <Plus className="h-3 w-3" /> Custom
-                </button>
+                {limits.canCustomCategory ? (
+                  <button type="button" onClick={() => setShowCustomInput(!showCustomInput)} className="text-xs text-[#000000] dark:text-[#FFFFFF] hover:underline flex items-center gap-1">
+                    <Plus className="h-3 w-3" /> Custom
+                  </button>
+                ) : (
+                  <Link href="/referral" className="text-xs text-[#7C3AED] hover:underline flex items-center gap-1">
+                    <Lock className="h-3 w-3" /> Custom (Premium)
+                  </Link>
+                )}
               </div>
 
               {/* Search */}
@@ -285,10 +336,10 @@ export default function CreatePage() {
                 ))}
               </div>
               <div className="flex items-center gap-3">
-                <input type="number" min={2} max={500} value={form.playersNeeded}
-                  onChange={(e) => setForm({ ...form, playersNeeded: parseInt(e.target.value) || 2 })}
+                <input type="number" min={2} max={limits.maxPlayersPerActivity} value={form.playersNeeded}
+                  onChange={(e) => setForm({ ...form, playersNeeded: Math.min(parseInt(e.target.value) || 2, limits.maxPlayersPerActivity) })}
                   className="w-20 px-3 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] outline-none focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF]" />
-                <span className="text-sm text-[#6B6B6B]">players needed</span>
+                <span className="text-sm text-[#6B6B6B]">players needed {!isPremium && `(max ${limits.maxPlayersPerActivity})`}</span>
               </div>
             </div>
 

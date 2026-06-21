@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useActivityStore } from "@/stores/activity-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -9,19 +9,29 @@ import { signOut } from "@/lib/auth-service";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import {
   Calendar, Trophy, LogOut, ChevronRight, MapPin, Moon, Sun,
-  Shield, Bell, HelpCircle, MessageSquare, Navigation
+  Shield, Bell, HelpCircle, MessageSquare, Navigation, Gift, Crown
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { LanguageSelector } from "@/components/language-selector";
+import { getReferralProfile, ReferralProfile } from "@/lib/referral-service";
+import { isAdminEmail } from "@/lib/admin-service";
 
 export default function ProfilePage() {
   const { activities, userLocation, setUserLocation } = useActivityStore();
+  const [referralProfile, setReferralProfile] = useState<ReferralProfile | null>(null);
   const { user } = useAuthStore();
   const currentUser = useCurrentUser();
   const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+
+  // Load referral profile
+  useEffect(() => {
+    if (user?.uid) {
+      getReferralProfile(user.uid).then(setReferralProfile).catch(() => {});
+    }
+  }, [user?.uid]);
 
   const joinedActivities = activities.filter((a) =>
     a.players.some((p) => p.id === currentUser?.id)
@@ -100,7 +110,15 @@ export default function ProfilePage() {
           </label>
         </div>
         <div>
-          <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{displayName}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{displayName}</h1>
+            {referralProfile?.isPremium && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white text-[10px] font-bold">
+                <Crown className="h-3 w-3" />
+                PREMIUM
+              </span>
+            )}
+          </div>
           <p className="text-sm text-[#6B6B6B]">{user?.email || ""}</p>
         </div>
       </div>
@@ -141,6 +159,26 @@ export default function ProfilePage() {
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
+          </Link>
+
+          <Link href="/referral" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors">
+            <div className="flex items-center gap-3">
+              <Gift className="h-5 w-5 text-[#7C3AED]" />
+              <div>
+                <p className="text-[0.9375rem] font-medium text-[#000000] dark:text-[#FFFFFF]">Refer & Get Premium</p>
+                <p className="text-xs text-[#6B6B6B]">
+                  {referralProfile?.isPremium
+                    ? "You're Premium! Share with friends"
+                    : `Invite 3 friends to unlock Premium`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {referralProfile?.isPremium && (
+                <span className="h-2 w-2 rounded-full bg-[#06C167]" />
+              )}
+              <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
+            </div>
           </Link>
         </div>
       </div>
@@ -221,6 +259,19 @@ export default function ProfilePage() {
       <div>
         <h2 className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wider mb-3">{t.support_title}</h2>
         <div className="flex flex-col">
+          {/* Admin Panel (only for admins) */}
+          {isAdminEmail(user?.email || null) && (
+            <Link href="/admin" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#7C3AED]/5 -mx-4 px-4 rounded-lg transition-colors w-full text-left">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-[#7C3AED]" />
+                <div>
+                  <p className="text-[0.9375rem] font-medium text-[#7C3AED]">Admin Panel</p>
+                  <p className="text-xs text-[#6B6B6B]">Manage users, plans, and settings</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-[#7C3AED]" />
+            </Link>
+          )}
           <Link href="/contact" className="flex items-center justify-between py-4 border-b border-[#E2E2E2] dark:border-[#333333] hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] -mx-4 px-4 rounded-lg transition-colors w-full text-left">
             <div className="flex items-center gap-3">
               <HelpCircle className="h-5 w-5 text-[#000000] dark:text-[#FFFFFF]" />

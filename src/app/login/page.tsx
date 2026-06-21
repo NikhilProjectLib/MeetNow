@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/auth-service";
-import { Zap, Mail, Loader2 } from "lucide-react";
+import { applyReferralCode } from "@/lib/referral-service";
+import { Zap, Mail, Loader2, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { useTranslation } from "@/hooks/use-translation";
+import { toast } from "sonner";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useTranslation();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -17,12 +20,28 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+
+  // Capture referral code from URL
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      setReferralCode(ref.toUpperCase());
+      setMode("signup"); // Switch to signup mode when coming from referral link
+    }
+  }, [searchParams]);
 
   const handleGoogle = async () => {
     setIsLoading(true);
     setError("");
     try {
-      await signInWithGoogle();
+      const user = await signInWithGoogle();
+      // Apply referral code if present
+      if (referralCode && user.uid) {
+        await applyReferralCode(user.uid, user.displayName || "User", referralCode)
+          .then((res) => { if (res.success) toast.success(res.message); })
+          .catch(() => {});
+      }
       router.push("/");
     } catch (err: any) {
       setError(err.message || t.google_signin_failed);
@@ -38,7 +57,13 @@ export default function LoginPage() {
     try {
       if (mode === "signup") {
         if (!name.trim()) { setError(t.name_required); setIsLoading(false); return; }
-        await signUpWithEmail(email, password, name);
+        const user = await signUpWithEmail(email, password, name);
+        // Apply referral code if present
+        if (referralCode && user.uid) {
+          await applyReferralCode(user.uid, name, referralCode)
+            .then((res) => { if (res.success) toast.success(res.message); })
+            .catch(() => {});
+        }
       } else {
         await signInWithEmail(email, password);
       }
@@ -81,6 +106,21 @@ export default function LoginPage() {
           <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{t.app_name}</h1>
           <p className="text-[#6B6B6B] text-sm mt-1">{t.app_tagline}</p>
         </div>
+
+        {/* Referral Code Banner */}
+        {referralCode && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-3 rounded-xl bg-gradient-to-r from-[#7C3AED]/10 to-[#EC4899]/10 border border-[#7C3AED]/20 flex items-center gap-3"
+          >
+            <Gift className="h-5 w-5 text-[#7C3AED] flex-shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-[#7C3AED]">Referral code applied!</p>
+              <p className="text-[11px] text-[#6B6B6B]">Sign up to help your friend earn Premium</p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Card */}
         <div className="p-6 rounded-2xl bg-[#F6F6F6] dark:bg-[#1A1A1A]">
@@ -175,5 +215,17 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#FFFFFF] dark:bg-[#000000]">
+        <div className="animate-spin h-8 w-8 border-4 border-[#000000] dark:border-[#FFFFFF] border-t-transparent rounded-full" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
