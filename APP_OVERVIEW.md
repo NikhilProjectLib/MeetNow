@@ -1,8 +1,8 @@
-# MeetNow — App Overview & Feature Documentation
+# Meelo — App Overview & Feature Documentation
 
-## What is MeetNow?
+## What is Meelo?
 
-MeetNow is a real-time social activity platform where users can discover, create, and join nearby activities like cricket matches, football games, trekking, clubbing, and more. Think of it as "BookMyShow meets Uber" — but for spontaneous group activities.
+Meelo is a real-time social activity platform where users can discover, create, and join nearby activities like cricket matches, football games, trekking, clubbing, and more. Think of it as "BookMyShow meets Uber" — but for spontaneous group activities.
 
 ---
 
@@ -246,7 +246,7 @@ User Action → Zustand Store → Firestore Write → Real-time Listener → All
 ## Folder Structure
 
 ```
-meetnow/
+meelo/
 ├── src/
 │   ├── app/              # Pages (Next.js App Router)
 │   ├── components/       # Reusable UI components
@@ -263,7 +263,7 @@ meetnow/
 ## How to Run
 
 ```bash
-cd meetnow
+cd meelo
 npm install
 npm run dev
 # Open http://localhost:3000

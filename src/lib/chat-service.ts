@@ -100,7 +100,7 @@ export async function sendSystemMessage(
 ): Promise<void> {
   await sendMessage(activityId, {
     senderId: "system",
-    senderName: "MeetNow",
+    senderName: "Meelo",
     senderAvatar: "",
     text,
     type: "system",

@@ -17,7 +17,7 @@ export function ShareButton({ activity }: ShareButtonProps) {
     ? `${window.location.origin}/activity/${activity.id}`
     : "";
 
-  const shareText = `Join me for "${activity.name}" on MeetNow! ${activity.date} at ${activity.time}, ${activity.location}. ${activity.playersNeeded - activity.playersJoined} spots left!`;
+  const shareText = `Join me for "${activity.name}" on Meelo! ${activity.date} at ${activity.time}, ${activity.location}. ${activity.playersNeeded - activity.playersJoined} spots left!`;
 
   // Close on outside click
   useEffect(() => {
