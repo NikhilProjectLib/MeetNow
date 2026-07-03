@@ -19,11 +19,14 @@ import { Plus, Search, Calendar, Clock, Users, Sparkles } from "lucide-react";
 import { CalendarPicker } from "@/components/calendar-picker";
 import { LocationPicker } from "@/components/location-picker";
 import { SuccessModal } from "@/components/success-modal";
+import { useTierCheck } from "@/hooks/use-tier-check";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 export default function CreatePage() {
   const currentUser = useCurrentUser();
   const { addActivity, activities, isFirebaseConnected, userLocation } = useActivityStore();
   const router = useRouter();
+  const { checkCanCreate, showUpgrade, upgradeReason, closeUpgrade } = useTierCheck();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [categorySearch, setCategorySearch] = useState("");
   const [showAllCategories, setShowAllCategories] = useState(false);
@@ -91,6 +94,7 @@ export default function CreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!checkCanCreate()) return;
     const validation = validateCreateForm(form);
     if (!validation.valid) { setErrors(validation.errors); return; }
     setErrors({}); setIsSubmitting(true);
@@ -372,6 +376,7 @@ export default function CreatePage() {
         message="Your activity is now live and visible to everyone nearby."
         onClose={() => router.push("/")}
       />
+      <UpgradeModal isOpen={showUpgrade} onClose={closeUpgrade} reason={upgradeReason} />
     </div>
   );
 }

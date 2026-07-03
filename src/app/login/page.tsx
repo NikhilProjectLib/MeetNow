@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/auth-service";
-import { Zap, Mail, Loader2 } from "lucide-react";
+import { getOrCreateUserProfile } from "@/lib/referral-service";
+import { useUserProfileStore } from "@/stores/user-profile-store";
+import { Zap, Mail, Loader2, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { useTranslation } from "@/hooks/use-translation";
@@ -11,18 +13,40 @@ import { useTranslation } from "@/hooks/use-translation";
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { setProfile } = useUserProfileStore();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check URL for referral code
+  useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) {
+        setReferralCode(ref);
+        setMode("signup");
+      }
+    }
+  });
 
   const handleGoogle = async () => {
     setIsLoading(true);
     setError("");
     try {
-      await signInWithGoogle();
+      const user = await signInWithGoogle();
+      const profile = await getOrCreateUserProfile(
+        user.uid,
+        user.displayName || "User",
+        user.email || "",
+        user.photoURL,
+        referralCode || undefined
+      );
+      setProfile(profile);
       router.push("/");
     } catch (err: any) {
       setError(err.message || t.google_signin_failed);
@@ -38,7 +62,15 @@ export default function LoginPage() {
     try {
       if (mode === "signup") {
         if (!name.trim()) { setError(t.name_required); setIsLoading(false); return; }
-        await signUpWithEmail(email, password, name);
+        const user = await signUpWithEmail(email, password, name);
+        const profile = await getOrCreateUserProfile(
+          user.uid,
+          name,
+          email,
+          null,
+          referralCode || undefined
+        );
+        setProfile(profile);
       } else {
         await signInWithEmail(email, password);
       }
@@ -120,6 +152,19 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full px-4 py-3 bg-[#FFFFFF] dark:bg-[#000000] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF] transition-all"
               />
+            )}
+            {mode === "signup" && (
+              <div className="relative">
+                <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B6B6B]" />
+                <input
+                  type="text"
+                  placeholder="Referral code (optional)"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  disabled={isLoading}
+                  className="w-full pl-10 pr-4 py-3 bg-[#FFFFFF] dark:bg-[#000000] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF] transition-all"
+                />
+              </div>
             )}
             <input
               type="email"

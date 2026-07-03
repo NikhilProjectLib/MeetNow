@@ -9,17 +9,22 @@ import { signOut } from "@/lib/auth-service";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import {
   Calendar, Trophy, LogOut, ChevronRight, MapPin, Moon, Sun,
-  Shield, Bell, HelpCircle, MessageSquare, Navigation
+  Shield, Bell, HelpCircle, MessageSquare, Navigation, Crown, Gift
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { LanguageSelector } from "@/components/language-selector";
+import { useUserProfileStore } from "@/stores/user-profile-store";
+import { getReferralProgress, isPremium } from "@/lib/referral-service";
 
 export default function ProfilePage() {
   const { activities, userLocation, setUserLocation } = useActivityStore();
   const { user } = useAuthStore();
   const currentUser = useCurrentUser();
   const { t } = useTranslation();
+  const { profile } = useUserProfileStore();
+  const progress = getReferralProgress(profile);
+  const userIsPremium = isPremium(profile);
   const [darkMode, setDarkMode] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
@@ -100,7 +105,18 @@ export default function ProfilePage() {
           </label>
         </div>
         <div>
-          <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{displayName}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[#000000] dark:text-[#FFFFFF]">{displayName}</h1>
+            {userIsPremium ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-[10px] font-bold text-[#FFFFFF]">
+                <Crown className="h-3 w-3" /> PREMIUM
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E2E2E2] dark:bg-[#333333] text-[10px] font-bold text-[#6B6B6B]">
+                BASIC
+              </span>
+            )}
+          </div>
           <p className="text-sm text-[#6B6B6B]">{user?.email || ""}</p>
         </div>
       </div>
@@ -116,6 +132,36 @@ export default function ProfilePage() {
           <p className="text-sm text-[#6B6B6B]">{t.profile_created}</p>
         </div>
       </div>
+
+      {/* Invite Friends / Tier Card */}
+      <Link href="/invite" className="block bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-5 border border-amber-200 dark:border-amber-800/30 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+              <Gift className="h-5 w-5 text-[#FFFFFF]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">
+                {userIsPremium ? "Premium Active" : "Invite Friends, Get Premium"}
+              </p>
+              <p className="text-xs text-[#6B6B6B]">
+                {userIsPremium
+                  ? "Unlimited access unlocked!"
+                  : `${progress.count}/3 referrals — ${3 - progress.count} more to go`}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-[#6B6B6B]" />
+        </div>
+        {!userIsPremium && (
+          <div className="mt-3 h-2 bg-[#E2E2E2] dark:bg-[#333333] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all"
+              style={{ width: `${(progress.count / 3) * 100}%` }}
+            />
+          </div>
+        )}
+      </Link>
 
       {/* Account Section */}
       <div>

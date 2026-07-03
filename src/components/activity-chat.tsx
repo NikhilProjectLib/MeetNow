@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { ChatMessage, sendMessage, subscribeToMessages } from "@/lib/chat-service";
 import { updateLastSeen } from "@/lib/chat-unread-service";
-import { Send, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, MessageCircle, ChevronDown, ChevronUp, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTranslation } from "@/hooks/use-translation";
+import { useUserProfileStore } from "@/stores/user-profile-store";
+import { isPremium } from "@/lib/referral-service";
 
 interface ActivityChatProps {
   activityId: string;
@@ -19,6 +21,8 @@ interface ActivityChatProps {
 export function ActivityChat({ activityId, activityName, participantIds, isJoined, unreadCount = 0 }: ActivityChatProps) {
   const currentUser = useCurrentUser();
   const { t } = useTranslation();
+  const { profile } = useUserProfileStore();
+  const canChat = isPremium(profile);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -200,25 +204,34 @@ export function ActivityChat({ activityId, activityName, participantIds, isJoine
 
       {/* Input */}
       {isJoined ? (
-        <div className="flex items-center gap-2 px-4 py-3 border-t border-[#E2E2E2] dark:border-[#333333] bg-[#F6F6F6] dark:bg-[#1A1A1A]">
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder={t.chat_placeholder}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isSending}
-            className="flex-1 px-4 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] rounded-full text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF] transition-all"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!newMessage.trim() || isSending}
-            className="h-10 w-10 rounded-full bg-[#000000] dark:bg-[#FFFFFF] flex items-center justify-center disabled:opacity-30 hover:bg-[#333333] dark:hover:bg-[#E2E2E2] transition-colors shrink-0"
-          >
-            <Send className="h-4 w-4 text-[#FFFFFF] dark:text-[#000000]" />
-          </button>
-        </div>
+        canChat ? (
+          <div className="flex items-center gap-2 px-4 py-3 border-t border-[#E2E2E2] dark:border-[#333333] bg-[#F6F6F6] dark:bg-[#1A1A1A]">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder={t.chat_placeholder}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSending}
+              className="flex-1 px-4 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] rounded-full text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF] transition-all"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!newMessage.trim() || isSending}
+              className="h-10 w-10 rounded-full bg-[#000000] dark:bg-[#FFFFFF] flex items-center justify-center disabled:opacity-30 hover:bg-[#333333] dark:hover:bg-[#E2E2E2] transition-colors shrink-0"
+            >
+              <Send className="h-4 w-4 text-[#FFFFFF] dark:text-[#000000]" />
+            </button>
+          </div>
+        ) : (
+          <div className="px-4 py-3 border-t border-[#E2E2E2] dark:border-[#333333] text-center bg-amber-50 dark:bg-amber-900/20">
+            <div className="flex items-center justify-center gap-2">
+              <Crown className="h-3.5 w-3.5 text-amber-500" />
+              <p className="text-xs text-amber-700 dark:text-amber-400">Invite 3 friends to unlock chat messaging</p>
+            </div>
+          </div>
+        )
       ) : (
         <div className="px-4 py-3 border-t border-[#E2E2E2] dark:border-[#333333] text-center bg-[#F6F6F6] dark:bg-[#1A1A1A]">
           <p className="text-xs text-[#6B6B6B]">{t.chat_join_to_send}</p>

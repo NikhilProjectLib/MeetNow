@@ -9,10 +9,12 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PageTransition } from "@/components/page-transition";
 import { Footer } from "@/components/footer";
 import { useAuthStore } from "@/stores/auth-store";
+import { useUserProfileSync } from "@/hooks/use-user-profile";
 import { Toaster } from "sonner";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore();
+  useUserProfileSync();
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
   const isLegalPage = ["/privacy", "/terms", "/contact"].includes(pathname);
