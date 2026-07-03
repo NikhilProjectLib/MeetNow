@@ -12,6 +12,9 @@ import { OwnerControls } from "@/components/owner-controls";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useUnreadCounts } from "@/hooks/use-unread-counts";
 import { ShareButton } from "@/components/share-button";
+import { useTierCheck } from "@/hooks/use-tier-check";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { AdBanner } from "@/components/ad-banner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +23,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
   const currentUser = useCurrentUser();
   const { getActivity, joinActivity, leaveActivity } = useActivityStore();
   const unreadCounts = useUnreadCounts();
+  const { checkCanJoin, showUpgrade, upgradeReason, closeUpgrade } = useTierCheck();
   const activity = getActivity(id);
 
   if (!activity) {
@@ -54,6 +58,7 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
 
   const handleJoin = () => {
     if (!currentUser) return;
+    if (!checkCanJoin()) return;
     joinActivity(activity.id, { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar });
     toast.success("You joined!", { description: activity.name });
   };
@@ -218,8 +223,14 @@ export default function ActivityDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           {isOwner && <OwnerControls activity={activity} />}
+
+          {/* Sidebar Ad */}
+          <div className="rounded-2xl overflow-hidden">
+            <AdBanner slot="5566778899" format="rectangle" className="rounded-2xl" />
+          </div>
         </div>
       </div>
+      <UpgradeModal isOpen={showUpgrade} onClose={closeUpgrade} reason={upgradeReason} />
     </div>
   );
 }

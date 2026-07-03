@@ -14,6 +14,7 @@ import { useUnreadCounts } from "@/hooks/use-unread-counts";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
+import { AdBanner } from "@/components/ad-banner";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -226,6 +227,11 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Ad Banner - between filters and cards */}
+      <div className="px-6 lg:px-14 xl:px-20 py-4 bg-[#FFFFFF] dark:bg-[#000000]">
+        <AdBanner slot="1234567890" format="horizontal" className="rounded-xl overflow-hidden" />
+      </div>
+
       {/* Activity Cards with Pagination */}
       <div className="px-6 lg:px-14 xl:px-20 py-10 bg-[#FFFFFF] dark:bg-[#000000]">
         <div className="flex items-center justify-between mb-6">
@@ -303,6 +309,11 @@ export default function HomePage() {
             </button>
           </div>
         )}
+
+        {/* Bottom Ad Banner */}
+        <div className="mt-8">
+          <AdBanner slot="0987654321" format="rectangle" className="rounded-xl overflow-hidden" />
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { DistanceFilter } from "@/components/distance-filter";
 import { ActivityCategory } from "@/types";
 import { Search, MapPin } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { AdBanner } from "@/components/ad-banner";
 
 export default function ExplorePage() {
   const { getNearbyActivities, activities, userLocation } = useActivityStore();
@@ -82,13 +83,20 @@ export default function ExplorePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {filtered.map((activity) => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              variant="view"
-              onAction={(id) => router.push(`/activity/${id}`)}
-            />
+          {filtered.map((activity, index) => (
+            <div key={activity.id} className="contents">
+              <ActivityCard
+                activity={activity}
+                variant="view"
+                onAction={(id) => router.push(`/activity/${id}`)}
+              />
+              {/* In-feed ad after every 4th card */}
+              {(index + 1) % 4 === 0 && index < filtered.length - 1 && (
+                <div className="md:col-span-2">
+                  <AdBanner slot="1122334455" format="horizontal" className="rounded-xl overflow-hidden" />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
