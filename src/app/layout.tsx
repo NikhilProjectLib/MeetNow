@@ -24,12 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3862555394015481"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        ></script>
       </head>
       <body className={inter.className}>
         <AppShell>{children}</AppShell>
