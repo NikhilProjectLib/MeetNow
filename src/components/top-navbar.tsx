@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { NotificationBell } from "@/components/notification-bell";
 import { useTranslation } from "@/hooks/use-translation";
+import { MeeloLogo } from "@/components/meelo-logo";
 
 export function TopNavbar() {
   const pathname = usePathname();
@@ -28,8 +29,8 @@ export function TopNavbar() {
         {/* Left: Logo + Nav links */}
         <div className="flex items-center gap-8">
           {/* Logo */}
-          <Link href="/" className="text-xl font-black tracking-tight text-[#FFFFFF] hover:opacity-80 transition-opacity">
-            {t.app_name}
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <MeeloLogo variant="dark" size="sm" />
           </Link>
 
           {/* Nav links */}
