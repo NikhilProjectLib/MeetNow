@@ -23,21 +23,27 @@ export default function Icon() {
         <svg
           width="28"
           height="28"
-          viewBox="0 0 64 64"
+          viewBox="0 0 60 60"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
+          <defs>
+            <linearGradient id="mGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366f1" />
+              <stop offset="100%" stopColor="#8b5cf6" />
+            </linearGradient>
+          </defs>
           <path
-            d="M12 52 C12 52 12 28 12 28 C12 21 16.5 16 23 16 C27.5 16 30.5 18.5 32 22 C33.5 18.5 36.5 16 41 16 C47.5 16 52 21 52 28 C52 28 52 52 52 52"
-            stroke="#5B4DC7"
-            strokeWidth="6"
+            d="M10 48 C10 48 10 28 10 28 C10 20 15 15 22 15 C27 15 30 18 32 22 C34 18 37 15 42 15 C49 15 54 20 54 28 L54 48"
+            stroke="url(#mGrad)"
+            strokeWidth="5.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
           />
-          <path d="M32 52 L32 26" stroke="#5B4DC7" strokeWidth="6" strokeLinecap="round" />
-          <circle cx="19" cy="9" r="5.5" fill="#4A9EF5" />
-          <circle cx="45" cy="9" r="5.5" fill="#8B5CF6" />
+          <path d="M32 48 L32 26" stroke="url(#mGrad)" strokeWidth="5.5" strokeLinecap="round" />
+          <circle cx="18" cy="8" r="5" fill="#3b82f6" />
+          <circle cx="46" cy="8" r="5" fill="#8b5cf6" />
         </svg>
       </div>
     ),
