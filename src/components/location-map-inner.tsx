@@ -36,12 +36,11 @@ export default function LocationMapInner({ center, onMove }: LocationMapInnerPro
       zoomControl={false}
       attributionControl={false}
     >
-      {/* Same Uber/Rapido style tiles */}
+      {/* OpenStreetMap tiles — free, no API key required */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution='&copy; CARTO'
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         maxZoom={19}
-        subdomains="abcd"
       />
       <RecenterMap center={center} />
       <MapEvents onMove={onMove} />

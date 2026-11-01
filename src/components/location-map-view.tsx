@@ -42,10 +42,11 @@ export default function LocationMapView({ lat, lng, name, emoji }: LocationMapVi
       doubleClickZoom={false}
       touchZoom={false}
     >
+      {/* OpenStreetMap tiles — free, no API key required */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         maxZoom={19}
-        subdomains="abcd"
       />
       <Marker position={[lat, lng]} icon={createPinIcon(emoji)}>
         <Popup>

@@ -120,12 +120,11 @@ export default function MapInner({
       zoomControl={false}
       attributionControl={false}
     >
-      {/* Google Maps-style tiles — same as Uber/Rapido use */}
+      {/* OpenStreetMap tiles — free, no API key required */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         maxZoom={19}
-        subdomains="abcd"
       />
 
       <RecenterMap center={center} />
