@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Share2, Copy, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Activity } from "@/types";
+import { shareContent } from "@/lib/native";
 
 interface ShareButtonProps {
   activity: Activity;
@@ -47,13 +48,8 @@ export function ShareButton({ activity }: ShareButtonProps) {
   };
 
   const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: activity.name, text: shareText, url: shareUrl });
-      } catch { /* user cancelled */ }
-    } else {
-      setShowOptions(!showOptions);
-    }
+    const shared = await shareContent({ title: activity.name, text: shareText, url: shareUrl });
+    if (!shared) setShowOptions(!showOptions);
   };
 
   return (

@@ -9,6 +9,7 @@ import { Zap, Mail, Loader2, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
 import { useTranslation } from "@/hooks/use-translation";
+import { safeNext } from "@/lib/auth-redirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function LoginPage() {
         referralCode || undefined
       );
       setProfile(profile);
-      router.push("/");
+      router.replace(safeNext(new URLSearchParams(window.location.search).get("next")));
     } catch (err: any) {
       setError(err.message || t.google_signin_failed);
     } finally {
@@ -74,7 +75,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmail(email, password);
       }
-      router.push("/");
+      router.replace(safeNext(new URLSearchParams(window.location.search).get("next")));
     } catch (err: any) {
       const msg = err.code === "auth/user-not-found" ? t.no_account_found
         : err.code === "auth/wrong-password" ? t.incorrect_password

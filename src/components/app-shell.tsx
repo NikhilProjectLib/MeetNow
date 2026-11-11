@@ -11,6 +11,8 @@ import { Footer } from "@/components/footer";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUserProfileSync } from "@/hooks/use-user-profile";
 import { Toaster } from "sonner";
+import { NativeBridge } from "@/components/native-bridge";
+import { isPublicPath } from "@/lib/auth-redirect";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore();
@@ -29,8 +31,9 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Login page — no nav
-  if (isLoginPage || !user) {
+  // Login page (and protected pages while redirecting to login) — no nav.
+  // Guests browsing public pages (home, explore, activity) get the full app.
+  if (isLoginPage || (!user && !isPublicPath(pathname))) {
     return (
       <>
         <PageTransition>{children}</PageTransition>
@@ -39,7 +42,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Authenticated layout: Top navbar + content + mobile bottom nav
+  // Main layout (signed in, or guest browsing): Top navbar + content + mobile bottom nav
   return (
     <>
       {/* Top navbar (like Uber) */}
@@ -63,6 +66,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
+      <NativeBridge />
       <FirebaseProvider>
         <AuthGuard>
           <AppContent>{children}</AppContent>

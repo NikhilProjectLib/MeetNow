@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Meelo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      font-family: system-ui, -apple-system, Roboto, sans-serif; background: #faf7ff; color: #1f1633; text-align: center; padding: 24px; box-sizing: border-box; }
+    @media (prefers-color-scheme: dark) { body { background: #120d1c; color: #f2ecff; } }
+    .logo { font-size: 56px; margin-bottom: 8px; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    p { opacity: .75; margin: 0 0 24px; line-height: 1.5; }
+    button { background: #7c3aed; color: #fff; border: 0; border-radius: 12px; padding: 12px 28px; font-size: 16px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="logo">📍</div>
+    <h1>You're offline</h1>
+    <p>Meelo needs an internet connection to find activities near you.</p>
+    <button onclick="location.href = window.__MEELO_URL__ || 'https://www.meelo.online'">Try again</button>
+  </div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import {
   getAuth,
   signInWithPopup,
+  signInWithCredential,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -10,6 +11,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { app } from "./firebase";
+import { isNativeApp } from "./native";
 
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
@@ -20,6 +22,16 @@ export { auth };
  * Sign in with Google popup
  */
 export async function signInWithGoogle(): Promise<User> {
+  if (isNativeApp()) {
+    // Google blocks OAuth popups inside Android WebViews, so use the native
+    // Google account picker and hand the ID token to the web Firebase SDK.
+    const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
+    const native = await FirebaseAuthentication.signInWithGoogle();
+    const idToken = native.credential?.idToken;
+    if (!idToken) throw new Error("Google sign-in was cancelled");
+    const result = await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+    return result.user;
+  }
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 }
@@ -49,6 +61,10 @@ export async function signUpWithEmail(
  * Sign out
  */
 export async function signOut(): Promise<void> {
+  if (isNativeApp()) {
+    const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
+    await FirebaseAuthentication.signOut().catch(() => {});
+  }
   await firebaseSignOut(auth);
 }
 

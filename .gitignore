@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# capacitor / android
+/android/app/google-services.json
+/android/keystore.properties
+*.jks
+*.keystore
+/android/app/src/debug/res/raw/corp_ca.pem

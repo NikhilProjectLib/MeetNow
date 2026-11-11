@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
 import { AdBanner } from "@/components/ad-banner";
+import { loginUrl } from "@/lib/auth-redirect";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -78,7 +79,11 @@ export default function HomePage() {
   useMemo(() => { setCurrentPage(1); }, [activeCategory, locationQuery]);
 
   const handleJoin = (activityId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      // Guests can browse freely; ask them to log in only when they join.
+      router.push(loginUrl(`/activity/${activityId}`));
+      return;
+    }
     joinActivity(activityId, {
       id: currentUser.id,
       name: currentUser.name,

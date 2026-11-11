@@ -31,6 +31,7 @@ export function ActivityCard({ activity, variant, onAction, unreadCount = 0 }: A
     e.stopPropagation();
     e.preventDefault();
     onAction(activity.id);
+    if (!currentUser) return; // guest → parent redirects to login
     setJustJoined(true);
 
     const rect = (e.target as HTMLElement).getBoundingClientRect();

@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { NotificationBell } from "@/components/notification-bell";
 import { useTranslation } from "@/hooks/use-translation";
 import { MeeloLogo } from "@/components/meelo-logo";
+import { loginUrl } from "@/lib/auth-redirect";
 
 export function TopNavbar() {
   const pathname = usePathname();
@@ -55,8 +56,17 @@ export function TopNavbar() {
           </nav>
         </div>
 
-        {/* Right: Notifications + Profile */}
+        {/* Right: Notifications + Profile (or Log in for guests) */}
         <div className="flex items-center gap-2">
+          {!user ? (
+            <Link
+              href={loginUrl(pathname)}
+              className="px-4 py-2 rounded-full bg-[#FFFFFF] text-[#000000] text-sm font-semibold hover:bg-[#FFFFFF]/90 transition-colors"
+            >
+              Log in
+            </Link>
+          ) : (
+          <>
           <NotificationBell />
           <Link
             href="/profile"
@@ -73,6 +83,8 @@ export function TopNavbar() {
               {displayName}
             </span>
           </Link>
+          </>
+          )}
         </div>
       </div>
     </header>
