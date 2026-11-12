@@ -455,3 +455,6 @@ input[type="datetime-local"] {
     background: #444444 !important;
   }
 }
+
+/* Android app (Capacitor): AdSense is not allowed inside apps */
+.native-app .ad-container { display: none !important; }

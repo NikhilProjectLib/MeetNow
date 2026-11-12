@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEBUG BUILDS ONLY: trust a corporate TLS-inspection root CA (e.g. Netskope)
+  so the emulator can load the site from an office network.
+  Place the CA as res/raw/corp_ca.pem (gitignored). Release builds are unaffected.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+            <certificates src="@raw/corp_ca" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

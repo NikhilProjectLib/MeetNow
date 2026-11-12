@@ -1,6 +1,7 @@
 "use client";
 
 import { useUserProfileStore } from "@/stores/user-profile-store";
+import { shareContent } from "@/lib/native";
 import { getReferralProgress } from "@/lib/referral-service";
 import { Crown, Copy, Share2, Gift, Check, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
@@ -31,13 +32,8 @@ export default function InvitePage() {
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Join Meelo", text: shareText, url: shareLink });
-      } catch {
-        // user cancelled
-      }
-    } else {
+    const shared = await shareContent({ title: "Join Meelo", text: shareText, url: shareLink });
+    if (!shared) {
       // Fallback: copy link
       await navigator.clipboard.writeText(shareText);
       toast.success("Share text copied!");

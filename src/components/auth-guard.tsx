@@ -4,28 +4,34 @@ import { useAuthStore } from "@/stores/auth-store";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2, Zap } from "lucide-react";
+import { isPublicPath, loginUrl, safeNext } from "@/lib/auth-redirect";
 
-const publicPaths = ["/login", "/privacy", "/terms", "/contact"];
-
+/**
+ * Browsing (home, explore, activity pages) is public so visitors from shared
+ * links see real activities first. Pages that act on behalf of a user
+ * (create, my activities, profile, invite) redirect to /login?next=…
+ */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
 
-  const isPublicPath = publicPaths.includes(pathname);
+  const isPublic = isPublicPath(pathname);
   const isLoginPage = pathname === "/login";
 
   useEffect(() => {
-    if (!isLoading && !user && !isPublicPath) {
-      router.push("/login");
+    if (!isLoading && !user && !isPublic) {
+      const query = window.location.search;
+      router.replace(loginUrl(pathname + query));
     }
     if (!isLoading && user && isLoginPage) {
-      router.push("/");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.replace(safeNext(next));
     }
-  }, [user, isLoading, isPublicPath, isLoginPage, router]);
+  }, [user, isLoading, isPublic, isLoginPage, pathname, router]);
 
   // Public pages render immediately — no auth check needed
-  if (isPublicPath) {
+  if (isPublic) {
     return <>{children}</>;
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { isNativeApp } from "@/lib/native";
 
 interface AdBannerProps {
   slot: string;
@@ -20,6 +21,9 @@ export function AdBanner({ slot, format = "auto", fullWidth = true, className = 
   const pushed = useRef(false);
 
   useEffect(() => {
+    // AdSense is not permitted inside mobile apps (use AdMob there). In the
+    // Android app we skip loading; `.native-app .ad-container` is hidden via CSS.
+    if (isNativeApp()) return;
     if (pushed.current) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
