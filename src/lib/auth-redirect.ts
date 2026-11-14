@@ -12,6 +12,7 @@ export function isPublicPath(pathname: string): boolean {
     pathname === "/privacy" ||
     pathname === "/terms" ||
     pathname === "/contact" ||
+    pathname === "/delete-account" ||
     pathname.startsWith("/activity/")
   );
 }

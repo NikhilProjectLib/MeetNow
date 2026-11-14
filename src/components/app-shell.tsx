@@ -19,7 +19,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
   useUserProfileSync();
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
-  const isLegalPage = ["/privacy", "/terms", "/contact"].includes(pathname);
+  const isLegalPage = ["/privacy", "/terms", "/contact", "/delete-account"].includes(pathname);
 
   // Legal pages — no auth required, no nav, just content + footer
   if (isLegalPage) {

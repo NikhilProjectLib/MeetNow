@@ -35,8 +35,11 @@
   --radius: 0.5rem;
 }
 
+/* Dark mode: override the theme variables at runtime.
+   (An @theme block inside @media is NOT conditional in Tailwind v4 — it made the
+   dark palette apply always, giving a black page background in light mode.) */
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root {
     --color-background: #000000;
     --color-foreground: #FFFFFF;
     --color-card: #141414;

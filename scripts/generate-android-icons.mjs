@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Generates the Android launcher icons, splash screens and Play Store icon
+ * Generates the Android launcher icons, splash screens, Play Store icon and
+ * Play Store feature graphic
  * from the website logo (public/icon.svg), so app and website match.
  *
  *   npm run android:icons
@@ -104,6 +105,35 @@ for (const [dir, [w, h]] of Object.entries(splash)) {
 // Play Store listing icon (512x512, full bleed — Play applies its own mask).
 console.log("Play Store");
 render(join(root, "android/store/play-store-icon-512.png"), 512, 512, 72, "square");
+
+// Play Store feature graphic (1024x500)
+console.log("Feature graphic");
+{
+  const w = 1024, h = 500;
+  const chips = ["🏏 Cricket", "⚽ Football", "🏃 Running", "🏸 Badminton", "🥾 Trekking", "🧘 Yoga"];
+  const html = `<!doctype html><html><head><style>
+    html,body{margin:0;width:${w}px;height:${h}px;overflow:hidden}
+    body{font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#fff;
+      background:linear-gradient(135deg,#0b0b12 0%,#1e1b4b 55%,#4c1d95 100%);
+      display:flex;align-items:center;padding:0 72px;box-sizing:border-box;gap:56px}
+    .tile{width:220px;height:220px;flex:none;border-radius:48px;background:#fff;display:flex;align-items:center;justify-content:center;
+      box-shadow:0 20px 60px rgba(0,0,0,.35)}
+    .tile svg{width:168px;height:168px}
+    h1{margin:0;font-size:84px;font-weight:800;letter-spacing:-2px;line-height:1}
+    p{margin:14px 0 26px;font-size:34px;line-height:1.2;color:#ddd6fe;font-weight:600}
+    .chips{display:flex;flex-wrap:wrap;gap:10px;max-width:640px}
+    .chip{padding:9px 16px;border-radius:999px;background:rgba(255,255,255,.12);font-size:21px;font-weight:600}
+  </style></head><body><div class="tile">${svg}</div><div>
+    <h1>Meelo</h1><p>Find people to play with<br/>near you — today</p>
+    <div class="chips">${chips.map((c) => `<span class="chip">${c}</span>`).join("")}</div>
+  </div></body></html>`;
+  const page = join(work, "feature.html");
+  writeFileSync(page, html);
+  const out = join(root, "android/store/feature-graphic-1024x500.png");
+  execFileSync(browser, ["--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
+    `--window-size=${w},${h}`, `--screenshot=${out}`, pathToFileURL(page).href], { stdio: "ignore" });
+  console.log("  android/store/feature-graphic-1024x500.png  1024x500");
+}
 
 rmSync(work, { recursive: true, force: true });
 console.log("Done. Rebuild the app to see the new icon.");

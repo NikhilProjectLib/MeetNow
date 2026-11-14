@@ -9,7 +9,7 @@ import { signOut } from "@/lib/auth-service";
 import { getCurrentPosition } from "@/lib/geo-utils";
 import {
   Calendar, Trophy, LogOut, ChevronRight, MapPin, Moon, Sun,
-  Shield, Bell, HelpCircle, MessageSquare, Navigation, Crown, Gift
+  Shield, Bell, HelpCircle, MessageSquare, Navigation, Crown, Gift, Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -293,6 +293,15 @@ export default function ProfilePage() {
         <LogOut className="h-5 w-5 text-[#E11900]" />
         <span className="text-[0.9375rem] font-medium text-[#E11900]">{t.sign_out}</span>
       </button>
+
+      {/* Delete account (required by Google Play) */}
+      <Link
+        href="/delete-account"
+        className="flex items-center gap-3 py-3 -mx-4 px-4 rounded-lg hover:bg-[#F6F6F6] dark:hover:bg-[#1A1A1A] transition-colors"
+      >
+        <Trash2 className="h-4 w-4 text-[#6B6B6B]" />
+        <span className="text-sm text-[#6B6B6B]">Delete account</span>
+      </Link>
 
       {/* App version */}
       <p className="text-center text-[11px] text-[#6B6B6B] pb-4">{t.version}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/auth-service";
 import { getOrCreateUserProfile } from "@/lib/referral-service";
@@ -16,6 +16,12 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const { setProfile } = useUserProfileStore();
   const [mode, setMode] = useState<"login" | "signup">("login");
+  // Where to go after login. Read once on load: the auth guard may navigate
+  // away first, and re-reading the URL afterwards would lose ?next.
+  const nextPath = useRef("/");
+  useEffect(() => {
+    nextPath.current = safeNext(new URLSearchParams(window.location.search).get("next"));
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -48,7 +54,7 @@ export default function LoginPage() {
         referralCode || undefined
       );
       setProfile(profile);
-      router.replace(safeNext(new URLSearchParams(window.location.search).get("next")));
+      router.replace(nextPath.current);
     } catch (err: any) {
       setError(err.message || t.google_signin_failed);
     } finally {
@@ -75,7 +81,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmail(email, password);
       }
-      router.replace(safeNext(new URLSearchParams(window.location.search).get("next")));
+      router.replace(nextPath.current);
     } catch (err: any) {
       const msg = err.code === "auth/user-not-found" ? t.no_account_found
         : err.code === "auth/wrong-password" ? t.incorrect_password
