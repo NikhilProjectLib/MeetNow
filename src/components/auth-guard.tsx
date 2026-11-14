@@ -12,7 +12,7 @@ import { isPublicPath, loginUrl, safeNext } from "@/lib/auth-redirect";
  * (create, my activities, profile, invite) redirect to /login?next=…
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuthStore();
+  const { user, isLoading, authInProgress } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,11 +24,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const query = window.location.search;
       router.replace(loginUrl(pathname + query));
     }
-    if (!isLoading && user && isLoginPage) {
+    // While the login form is mid-signup it saves the name/profile first and
+    // redirects itself — redirecting here early would use the email as the name.
+    if (!isLoading && user && isLoginPage && !authInProgress) {
       const next = new URLSearchParams(window.location.search).get("next");
       router.replace(safeNext(next));
     }
-  }, [user, isLoading, isPublic, isLoginPage, pathname, router]);
+  }, [user, isLoading, authInProgress, isPublic, isLoginPage, pathname, router]);
 
   // Public pages render immediately — no auth check needed
   if (isPublic) {

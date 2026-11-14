@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/auth-service";
 import { getOrCreateUserProfile } from "@/lib/referral-service";
 import { useUserProfileStore } from "@/stores/user-profile-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { Zap, Mail, Loader2, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { LanguageSelector } from "@/components/language-selector";
@@ -15,13 +16,16 @@ export default function LoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { setProfile } = useUserProfileStore();
+  const setAuthInProgress = useAuthStore((st) => st.setAuthInProgress);
   const [mode, setMode] = useState<"login" | "signup">("login");
   // Where to go after login. Read once on load: the auth guard may navigate
   // away first, and re-reading the URL afterwards would lose ?next.
   const nextPath = useRef("/");
   useEffect(() => {
     nextPath.current = safeNext(new URLSearchParams(window.location.search).get("next"));
-  }, []);
+    // Clear the "signing in" flag once we've left the login page
+    return () => setAuthInProgress(false);
+  }, [setAuthInProgress]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -44,6 +48,8 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     setIsLoading(true);
     setError("");
+    setAuthInProgress(true);
+    let navigating = false;
     try {
       const user = await signInWithGoogle();
       const profile = await getOrCreateUserProfile(
@@ -54,11 +60,15 @@ export default function LoginPage() {
         referralCode || undefined
       );
       setProfile(profile);
+      navigating = true;
       router.replace(nextPath.current);
     } catch (err: any) {
       setError(err.message || t.google_signin_failed);
     } finally {
       setIsLoading(false);
+      // On success keep the flag until this page unmounts (see effect below),
+      // so the auth guard can't redirect again mid-navigation.
+      if (!navigating) setAuthInProgress(false);
     }
   };
 
@@ -66,10 +76,14 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setAuthInProgress(true);
+    let navigating = false;
     try {
       if (mode === "signup") {
         if (!name.trim()) { setError(t.name_required); setIsLoading(false); return; }
         const user = await signUpWithEmail(email, password, name);
+        // The auth listener fired before the name was saved — publish it now
+        useAuthStore.getState().setUser({ uid: user.uid, email: user.email, displayName: name.trim(), photoURL: user.photoURL });
         const profile = await getOrCreateUserProfile(
           user.uid,
           name,
@@ -81,6 +95,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmail(email, password);
       }
+      navigating = true;
       router.replace(nextPath.current);
     } catch (err: any) {
       const msg = err.code === "auth/user-not-found" ? t.no_account_found
@@ -91,6 +106,9 @@ export default function LoginPage() {
       setError(msg);
     } finally {
       setIsLoading(false);
+      // On success keep the flag until this page unmounts (see effect below),
+      // so the auth guard can't redirect again mid-navigation.
+      if (!navigating) setAuthInProgress(false);
     }
   };
 

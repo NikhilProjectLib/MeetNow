@@ -10,7 +10,7 @@ import { getOrCreateUserProfile, getUserProfile } from "@/lib/referral-service";
  * Should be called once in a top-level component (e.g., AppShell).
  */
 export function useUserProfileSync() {
-  const { user } = useAuthStore();
+  const { user, authInProgress } = useAuthStore();
   const { setProfile, setLoading } = useUserProfileStore();
 
   useEffect(() => {
@@ -18,6 +18,9 @@ export function useUserProfileSync() {
       setProfile(null);
       return;
     }
+    // The login form creates the profile itself (with the typed name and any
+    // referral code) — creating it here first would lose both.
+    if (authInProgress) return;
 
     let cancelled = false;
 
@@ -53,5 +56,5 @@ export function useUserProfileSync() {
     return () => {
       cancelled = true;
     };
-  }, [user, setProfile, setLoading]);
+  }, [user, authInProgress, setProfile, setLoading]);
 }
