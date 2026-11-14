@@ -6,7 +6,7 @@ import { getCurrentPosition } from "@/lib/geo-utils";
 import { useActivityStore } from "@/stores/activity-store";
 import dynamic from "next/dynamic";
 
-const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_KEY || "";
+import { searchPlaces, reverseGeocode as reverseGeocodePoint } from "@/lib/geocoding";
 const LocationMapInner = dynamic(() => import("./location-map-inner"), { ssr: false });
 
 interface MapLocationPickerProps {
@@ -44,30 +44,11 @@ export function MapLocationPicker({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Reverse geocode with Geoapify
+  // Reverse geocode (Geoapify, falling back to OpenStreetMap)
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
     setIsGeocoding(true);
     try {
-      const url = GEOAPIFY_KEY
-        ? `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_KEY}`
-        : `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (GEOAPIFY_KEY && data.features?.length > 0) {
-        const props = data.features[0].properties;
-        setAddress(props.address_line1 || props.formatted?.split(",")[0] || "Unknown location");
-      } else if (data.display_name) {
-        const addr = data.address || {};
-        const parts: string[] = [];
-        if (addr.road || addr.pedestrian) parts.push(addr.road || addr.pedestrian);
-        if (addr.suburb || addr.neighbourhood) parts.push(addr.suburb || addr.neighbourhood);
-        if (addr.city || addr.town || addr.village) parts.push(addr.city || addr.town || addr.village);
-        setAddress(parts.length > 0 ? parts.join(", ") : data.display_name.split(",").slice(0, 2).join(",").trim());
-      }
-    } catch {
-      setAddress("Selected location");
+      setAddress((await reverseGeocodePoint(lat, lng)) || "Selected location");
     } finally {
       setIsGeocoding(false);
     }
@@ -105,33 +86,8 @@ export function MapLocationPicker({
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const userLat = userLocation?.lat || center[0];
-        const userLng = userLocation?.lng || center[1];
-
-        const url = GEOAPIFY_KEY
-          ? `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&bias=proximity:${userLng},${userLat}&limit=5&apiKey=${GEOAPIFY_KEY}`
-          : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5&addressdetails=1`;
-
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (GEOAPIFY_KEY && data.features) {
-          setSearchResults(data.features.map((f: any) => ({
-            formatted: f.properties.formatted,
-            address_line1: f.properties.address_line1 || f.properties.name || "",
-            address_line2: f.properties.address_line2 || "",
-            lat: f.properties.lat,
-            lon: f.properties.lon,
-          })));
-        } else if (Array.isArray(data)) {
-          setSearchResults(data.map((r: any) => ({
-            formatted: r.display_name,
-            address_line1: r.display_name.split(",")[0],
-            address_line2: r.display_name.split(",").slice(1, 3).join(",").trim(),
-            lat: parseFloat(r.lat),
-            lon: parseFloat(r.lon),
-          })));
-        }
+        const near = { lat: userLocation?.lat || center[0], lng: userLocation?.lng || center[1] };
+        setSearchResults(await searchPlaces(searchQuery, near, 5));
       } catch { /* */ }
       finally { setIsSearching(false); }
     }, 350);

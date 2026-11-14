@@ -6,7 +6,7 @@ import { getCurrentPosition } from "@/lib/geo-utils";
 import { MapLocationPicker } from "@/components/map-location-picker";
 import { useActivityStore } from "@/stores/activity-store";
 
-const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_KEY || "";
+import { searchPlaces, reverseGeocode } from "@/lib/geocoding";
 
 interface LocationPickerProps {
   location: string;
@@ -50,7 +50,7 @@ export function LocationPicker({
 
   // Geoapify Autocomplete — real-time, proximity-biased, like Google
   useEffect(() => {
-    if (!location || location.length < 2 || !GEOAPIFY_KEY) {
+    if (!location || location.length < 2) {
       setSuggestions([]);
       setShowDropdown(false);
       return;
@@ -61,24 +61,9 @@ export function LocationPicker({
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const userLat = userLocation?.lat || 22.7196; // Indore fallback
-        const userLng = userLocation?.lng || 75.8577;
-
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(location)}&bias=proximity:${userLng},${userLat}&limit=6&apiKey=${GEOAPIFY_KEY}`;
-
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (data.features && data.features.length > 0) {
-          const results: GeoResult[] = data.features.map((f: any) => ({
-            formatted: f.properties.formatted,
-            address_line1: f.properties.address_line1 || f.properties.name || "",
-            address_line2: f.properties.address_line2 || "",
-            lat: f.properties.lat,
-            lon: f.properties.lon,
-            distance: f.properties.distance,
-            category: f.properties.category,
-          }));
+        const near = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : { lat: 22.7196, lng: 75.8577 };
+        const results: GeoResult[] = await searchPlaces(location, near, 6);
+        if (results.length > 0) {
           setSuggestions(results);
           setShowDropdown(true);
         } else {
@@ -129,18 +114,9 @@ export function LocationPicker({
       const pos = await getCurrentPosition();
       onCoordsChange(pos.lat, pos.lng);
 
-      // Reverse geocode with Geoapify
-      const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${pos.lat}&lon=${pos.lng}&apiKey=${GEOAPIFY_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.features && data.features.length > 0) {
-        const props = data.features[0].properties;
-        const label = props.address_line1 || props.street || props.suburb || props.city || props.formatted.split(",")[0];
-        onLocationChange(label);
-      } else {
-        onLocationChange(`Near ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
-      }
+      // Reverse geocode (Geoapify, falling back to OpenStreetMap)
+      const label = await reverseGeocode(pos.lat, pos.lng);
+      onLocationChange(label || `Near ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
       setGeoStatus("📍 Location detected");
     } catch {
       setGeoStatus("❌ Could not detect location");

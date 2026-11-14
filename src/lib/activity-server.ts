@@ -66,6 +66,9 @@ export async function getPublicActivity(id: string): Promise<Activity | null> {
       createdBy: String(d.createdBy ?? ""),
       ...(d.expiresAt ? { expiresAt: String(d.expiresAt) } : {}),
       ...(d.autoDeleteAfter ? { autoDeleteAfter: String(d.autoDeleteAfter) } : {}),
+      waitlist: Array.isArray(d.waitlist) ? (d.waitlist as Activity["players"]) : [],
+      ...(d.recurrence === "weekly" ? { recurrence: "weekly" as const } : {}),
+      ...(d.seriesId ? { seriesId: String(d.seriesId) } : {}),
     };
   } catch {
     return null;
@@ -106,4 +109,37 @@ export function spotsLabel(a: Activity): string {
   if (isPastActivity(a)) return "Ended";
   const n = spotsLeft(a);
   return n === 0 ? "Full" : `${n} spot${n === 1 ? "" : "s"} left`;
+}
+
+/** Ids + dates of upcoming activities, for the sitemap. */
+export async function listUpcomingActivityIds(limit = 1000): Promise<{ id: string; date: string }[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const res = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          structuredQuery: {
+            from: [{ collectionId: "activities" }],
+            where: { fieldFilter: { field: { fieldPath: "date" }, op: "GREATER_THAN_OR_EQUAL", value: { stringValue: today } } },
+            select: { fields: [{ fieldPath: "date" }] },
+            limit,
+          },
+        }),
+        next: { revalidate: 3600 },
+      }
+    );
+    if (!res.ok) return [];
+    const rows = (await res.json()) as { document?: { name: string; fields?: Record<string, FsValue> } }[];
+    return rows
+      .filter((r) => r.document)
+      .map((r) => ({
+        id: r.document!.name.split("/").pop()!,
+        date: String(decode(r.document!.fields?.date ?? {}) ?? ""),
+      }));
+  } catch {
+    return [];
+  }
 }

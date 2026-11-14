@@ -11,7 +11,25 @@ import {
   joinActivityInFirestore,
   leaveActivityInFirestore,
   removePlayerInFirestore,
+  leaveWaitlistInFirestore,
+  createActivitySeries,
+  deleteSeriesFromDate,
+  deleteSeriesDate,
 } from "@/lib/activity-service";
+
+/**
+ * Weekly activities have one document per date. Lists show only the next
+ * upcoming date of each series (input must already be upcoming-only).
+ */
+function nextDatePerSeries(list: Activity[]): Activity[] {
+  const firstOfSeries = new Map<string, Activity>();
+  for (const a of list) {
+    if (!a.seriesId) continue;
+    const cur = firstOfSeries.get(a.seriesId);
+    if (!cur || `${a.date}T${a.time}` < `${cur.date}T${cur.time}`) firstOfSeries.set(a.seriesId, a);
+  }
+  return list.filter((a) => !a.seriesId || firstOfSeries.get(a.seriesId)?.id === a.id);
+}
 
 interface ActivityState {
   activities: Activity[];
@@ -32,13 +50,17 @@ interface ActivityState {
 
   // Mutations — write to Firestore if connected, else local
   addActivity: (activity: Omit<Activity, "id">) => Promise<Activity>;
-  joinActivity: (activityId: string, player: Player) => void;
+  /** Joins, or adds to the waitlist when full. */
+  joinActivity: (activityId: string, player: Player) => Promise<"joined" | "waitlisted" | "noop">;
   leaveActivity: (activityId: string, playerId: string) => void;
+  leaveWaitlist: (activityId: string, playerId: string) => void;
 
   // Owner CRUD
   updateActivity: (activityId: string, updates: Partial<Activity>) => void;
   deleteActivity: (activityId: string) => void;
   removePlayer: (activityId: string, playerId: string) => void;
+  /** Delete this date and all later dates of a weekly series. */
+  deleteSeriesFrom: (seriesId: string, fromDate: string) => Promise<void>;
 }
 
 export const useActivityStore = create<ActivityState>((set, get) => ({
@@ -59,6 +81,7 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
       const activityDate = new Date(`${a.date}T${a.time || "23:59"}`);
       return activityDate >= now;
     });
+    result = nextDatePerSeries(result);
     if (filter) {
       result = result.filter((a) => a.category === filter);
     }
@@ -72,6 +95,7 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
       const activityDate = new Date(`${a.date}T${a.time || "23:59"}`);
       return activityDate >= now;
     });
+    result = nextDatePerSeries(result);
 
     if (userLocation) {
       result = result
@@ -100,7 +124,10 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
     const { isFirebaseConnected } = get();
 
     if (isFirebaseConnected) {
-      const id = await createActivityInFirestore(newActivity);
+      const id =
+        newActivity.recurrence === "weekly"
+          ? await createActivitySeries(newActivity)
+          : await createActivityInFirestore(newActivity);
       // Real-time listener will pick up the new activity
       return { ...newActivity, id } as Activity;
     } else {
@@ -112,12 +139,12 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
     }
   },
 
-  joinActivity: (activityId: string, player: Player) => {
+  joinActivity: async (activityId: string, player: Player) => {
     const { isFirebaseConnected } = get();
 
     if (isFirebaseConnected) {
-      joinActivityInFirestore(activityId, player);
       // Real-time listener will update the state
+      return joinActivityInFirestore(activityId, player);
     } else {
       set((state) => ({
         activities: state.activities.map((activity) => {
@@ -131,7 +158,12 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
           };
         }),
       }));
+      return "joined";
     }
+  },
+
+  leaveWaitlist: (activityId: string, playerId: string) => {
+    if (get().isFirebaseConnected) leaveWaitlistInFirestore(activityId, playerId);
   },
 
   leaveActivity: (activityId: string, playerId: string) => {
@@ -170,8 +202,11 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
 
   deleteActivity: (activityId: string) => {
     const { isFirebaseConnected } = get();
+    const activity = get().activities.find((a) => a.id === activityId);
 
-    if (isFirebaseConnected) {
+    if (isFirebaseConnected && activity?.seriesId) {
+      deleteSeriesDate(activityId, activity.seriesId, activity.date);
+    } else if (isFirebaseConnected) {
       deleteActivityInFirestore(activityId);
     } else {
       set((state) => ({
@@ -196,6 +231,16 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
             players: activity.players.filter((p) => p.id !== playerId),
           };
         }),
+      }));
+    }
+  },
+
+  deleteSeriesFrom: async (seriesId: string, fromDate: string) => {
+    if (get().isFirebaseConnected) {
+      await deleteSeriesFromDate(seriesId, fromDate);
+    } else {
+      set((state) => ({
+        activities: state.activities.filter((a) => !(a.seriesId === seriesId && a.date >= fromDate)),
       }));
     }
   },

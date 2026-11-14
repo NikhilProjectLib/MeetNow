@@ -32,11 +32,12 @@ export function useTierCheck() {
 
   const checkCanCreate = useCallback(() => {
     if (!currentUser) return false;
-    const activeCreates = activities.filter(
-      (a) =>
-        a.createdBy === currentUser.id &&
-        new Date(`${a.date} ${a.time}`) > new Date()
-    ).length;
+    // A weekly series counts once, not once per date
+    const activeCreates = new Set(
+      activities
+        .filter((a) => a.createdBy === currentUser.id && new Date(`${a.date} ${a.time}`) > new Date())
+        .map((a) => a.seriesId || a.id)
+    ).size;
 
     const result = canCreateActivity(profile, activeCreates);
     if (!result.allowed) {

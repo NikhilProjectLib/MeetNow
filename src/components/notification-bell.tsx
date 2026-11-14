@@ -60,6 +60,7 @@ export function NotificationBell() {
       case "update": return "✏️";
       case "delete": return "🗑️";
       case "removed": return "⚠️";
+      case "promoted": return "🎉";
       default: return "🔔";
     }
   };

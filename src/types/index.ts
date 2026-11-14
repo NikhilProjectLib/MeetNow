@@ -26,6 +26,10 @@ export interface Activity {
   createdBy: string;
   expiresAt?: string; // ISO timestamp — activity auto-deletes after this time
   autoDeleteAfter?: string; // Duration label for display (e.g., "1 hour after event")
+  waitlist?: Player[]; // Queue when full — first in line is promoted when a spot opens
+  recurrence?: "weekly"; // Repeating activity; each date is its own document
+  seriesId?: string; // Shared by all dates of a repeating activity
+  skippedDates?: string[]; // Series dates the owner deleted — never re-created
 }
 
 export interface CreateActivityForm {

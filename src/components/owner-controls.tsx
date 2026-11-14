@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Activity, Player } from "@/types";
 import { useActivityStore } from "@/stores/activity-store";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,7 @@ interface OwnerControlsProps {
 
 export function OwnerControls({ activity }: OwnerControlsProps) {
   const router = useRouter();
-  const { updateActivity, deleteActivity, removePlayer } = useActivityStore();
+  const { updateActivity, deleteActivity, removePlayer, deleteSeriesFrom } = useActivityStore();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [playerToRemove, setPlayerToRemove] = useState<Player | null>(null);
@@ -44,6 +45,17 @@ export function OwnerControls({ activity }: OwnerControlsProps) {
   const handleCancelEdit = () => {
     setEditForm({ name: activity.name, location: activity.location, date: activity.date, time: activity.time, playersNeeded: activity.playersNeeded, description: activity.description });
     setIsEditing(false);
+  };
+
+  const handleDeleteSeries = async () => {
+    if (!activity.seriesId) return;
+    try {
+      await deleteSeriesFrom(activity.seriesId, activity.date);
+      toast("Weekly activity stopped", { description: `${activity.name} — this and all later dates were deleted` });
+      router.push("/");
+    } catch {
+      toast.error("Could not delete — please try again");
+    }
   };
 
   const handleDelete = () => {
@@ -157,13 +169,20 @@ export function OwnerControls({ activity }: OwnerControlsProps) {
         <div className="flex flex-col gap-3 p-4 rounded-xl bg-[#FFF0ED] dark:bg-[#1A0500] border border-[#E11900]/20">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-[#E11900]" />
-            <p className="text-sm font-semibold text-[#E11900]">Delete this activity?</p>
+            <p className="text-sm font-semibold text-[#E11900]">
+              {activity.seriesId ? "Delete this weekly activity?" : "Delete this activity?"}
+            </p>
           </div>
           <p className="text-xs text-[#6B6B6B]">This will permanently remove the activity. Members will no longer see it.</p>
           <div className="flex gap-2">
             <button onClick={handleDelete} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E11900] text-[#FFFFFF] text-xs font-medium hover:bg-[#C41600] transition-colors">
-              <Trash2 className="h-3.5 w-3.5" /> Delete
+              <Trash2 className="h-3.5 w-3.5" /> {activity.seriesId ? "Only this date" : "Delete"}
             </button>
+            {activity.seriesId && (
+              <button onClick={handleDeleteSeries} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E11900] text-[#FFFFFF] text-xs font-medium hover:bg-[#C41600] transition-colors">
+                <Trash2 className="h-3.5 w-3.5" /> This &amp; all later dates
+              </button>
+            )}
             <button onClick={() => setShowDeleteConfirm(false)} className="uber-btn uber-btn-secondary text-xs px-4 py-2">Cancel</button>
           </div>
         </div>

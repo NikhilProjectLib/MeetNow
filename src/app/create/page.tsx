@@ -15,7 +15,7 @@ import {
   autoDeleteOptions,
 } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Calendar, Clock, Users, Sparkles } from "lucide-react";
+import { Plus, Search, Calendar, Clock, Users, Sparkles, Repeat } from "lucide-react";
 import { CalendarPicker } from "@/components/calendar-picker";
 import { LocationPicker } from "@/components/location-picker";
 import { SuccessModal } from "@/components/success-modal";
@@ -37,6 +37,7 @@ export default function CreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [autoDeleteMinutes, setAutoDeleteMinutes] = useState(60);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
 
   const [lat, setLat] = useState(userLocation?.lat || 0);
   const [lng, setLng] = useState(userLocation?.lng || 0);
@@ -122,6 +123,7 @@ export default function CreatePage() {
       }],
       createdBy: currentUser?.id || "anonymous",
       ...(expiresAt && { expiresAt }), ...(autoDeleteAfter && { autoDeleteAfter }),
+      ...(repeatWeekly && { recurrence: "weekly" as const }),
     };
 
     try { await addActivity(activityData); } catch { await addActivity(activityData); }
@@ -274,6 +276,32 @@ export default function CreatePage() {
               {errors.time && <p className="text-xs text-[#E11900] mt-1">{errors.time}</p>}
             </div>
 
+            {/* Repeats */}
+            <div className="p-5 rounded-2xl bg-[#F6F6F6] dark:bg-[#1A1A1A]">
+              <div className="flex items-center gap-2 mb-3">
+                <Repeat className="h-4 w-4 text-[#6B6B6B]" />
+                <label className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">Repeats</label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setRepeatWeekly(false)}
+                  className={cn("uber-chip justify-center", !repeatWeekly && "uber-chip-active")}>
+                  One time
+                </button>
+                <button type="button" onClick={() => setRepeatWeekly(true)}
+                  className={cn("uber-chip justify-center", repeatWeekly && "uber-chip-active")}>
+                  🔁 Every week
+                </button>
+              </div>
+              {repeatWeekly && (
+                <p className="text-xs text-[#6B6B6B] mt-2">
+                  {form.date
+                    ? `Every ${new Date(`${form.date}T00:00`).toLocaleDateString("en-US", { weekday: "long" })}${form.time ? ` at ${form.time}` : ""}. `
+                    : ""}
+                  The next 4 weeks are scheduled now and new weeks are added automatically. People join each date separately.
+                </p>
+              )}
+            </div>
+
             {/* Group Size */}
             <div className="p-5 rounded-2xl bg-[#F6F6F6] dark:bg-[#1A1A1A]">
               <div className="flex items-center gap-2 mb-3">
@@ -350,6 +378,7 @@ export default function CreatePage() {
               <div className="text-xs text-[#6B6B6B] space-y-1.5">
                 <p>📍 {form.location || "Location not set"}</p>
                 <p>📅 {form.date ? formatDateLabel(form.date) : "Date not set"} · {form.time || "Time not set"}</p>
+                {repeatWeekly && <p>🔁 Repeats every week</p>}
                 <p>👥 0/{form.playersNeeded} players</p>
               </div>
               {form.description && (
@@ -373,7 +402,9 @@ export default function CreatePage() {
       <SuccessModal
         isOpen={showSuccess}
         title="Activity Created!"
-        message="Your activity is now live and visible to everyone nearby."
+        message={repeatWeekly
+          ? "Your weekly activity is live — the next 4 weeks are scheduled and visible to everyone nearby."
+          : "Your activity is now live and visible to everyone nearby."}
         onClose={() => router.push("/")}
       />
       <UpgradeModal isOpen={showUpgrade} onClose={closeUpgrade} reason={upgradeReason} />

@@ -3,7 +3,7 @@ import { rtdb } from "./firebase";
 
 export interface AppNotification {
   id: string;
-  type: "join" | "leave" | "chat" | "update" | "delete" | "removed";
+  type: "join" | "leave" | "chat" | "update" | "delete" | "removed" | "promoted";
   title: string;
   message: string;
   activityId: string;
@@ -154,6 +154,23 @@ export async function notifyPlayerRemoved(
     type: "removed",
     title: "Removed from activity",
     message: `You were removed from "${activityName}"`,
+    activityId,
+    activityName,
+  });
+}
+
+/**
+ * Helper: Notify a waitlisted player that a spot opened and they're in
+ */
+export async function notifyPromotedFromWaitlist(
+  playerId: string,
+  activityId: string,
+  activityName: string
+): Promise<void> {
+  await sendNotification(playerId, {
+    type: "promoted",
+    title: "You're in! 🎉",
+    message: `A spot opened up in "${activityName}" — you've been moved off the waitlist.`,
     activityId,
     activityName,
   });

@@ -82,6 +82,7 @@ export function ActivityCard({ activity, variant, onAction, unreadCount = 0 }: A
             {activity.location} · {activity.time}
             {activity.distance && activity.distance !== "0 km" ? ` · ${activity.distance}` : ""}
             {urgency ? ` · ${urgency.label}` : ""}
+            {activity.recurrence === "weekly" ? " · 🔁 Weekly" : ""}
           </p>
 
           {/* Capacity + players row */}
@@ -102,6 +103,7 @@ export function ActivityCard({ activity, variant, onAction, unreadCount = 0 }: A
             </div>
             <span className="text-[11px] text-[#6B6B6B] font-medium">
               {activity.playersJoined}/{activity.playersNeeded}
+              {isFull && (activity.waitlist?.length ?? 0) > 0 ? ` · ${activity.waitlist!.length} waiting` : ""}
             </span>
 
             {/* Player avatars */}

@@ -4,14 +4,23 @@ import { useEffect } from "react";
 import { useActivityStore } from "@/stores/activity-store";
 import { subscribeToActivities } from "@/lib/activity-service";
 import { getCurrentPosition } from "@/lib/geo-utils";
-import { deleteActivityInFirestore } from "@/lib/activity-service";
+import { deleteActivityInFirestore, extendWeeklySeries } from "@/lib/activity-service";
+import { useAuthStore } from "@/stores/auth-store";
 
 /**
  * Connects to Firestore for real-time activity sync.
  * Also handles auto-deletion of expired activities.
  */
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
-  const { setActivities, setUserLocation, setFirebaseConnected } = useActivityStore();
+  const { setActivities, setUserLocation, setFirebaseConnected, activities, isFirebaseConnected } = useActivityStore();
+  const signedIn = !!useAuthStore((s) => s.user);
+
+  // Keep weekly activities scheduled a few weeks ahead (signed-in clients only;
+  // idempotent, so it's fine if several clients do it).
+  useEffect(() => {
+    if (!signedIn || !isFirebaseConnected) return;
+    extendWeeklySeries(activities).catch(() => {});
+  }, [signedIn, isFirebaseConnected, activities]);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
