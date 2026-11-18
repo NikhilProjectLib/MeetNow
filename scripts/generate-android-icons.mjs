@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { crc32, deflateSync, inflateSync } from "node:zlib";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const res = join(root, "android/app/src/main/res");
@@ -102,9 +103,63 @@ for (const [dir, [w, h]] of Object.entries(splash)) {
   render(join(res, `${dir}/splash.png`), w, h, 30, "square");
 }
 
-// Play Store listing icon (512x512, full bleed — Play applies its own mask).
+/**
+ * Google Play requires the store icon as a 32-bit PNG (with alpha). Chrome
+ * saves fully opaque screenshots as 24-bit RGB, so add an opaque alpha channel.
+ */
+function pngToRgba(file) {
+  const buf = readFileSync(file);
+  let pos = 8, ihdr = null;
+  const idat = [];
+  while (pos < buf.length) {
+    const len = buf.readUInt32BE(pos);
+    const type = buf.toString("ascii", pos + 4, pos + 8);
+    const data = buf.subarray(pos + 8, pos + 8 + len);
+    if (type === "IHDR") ihdr = data;
+    if (type === "IDAT") idat.push(data);
+    pos += 12 + len;
+  }
+  const w = ihdr.readUInt32BE(0), h = ihdr.readUInt32BE(4), depth = ihdr[8], colorType = ihdr[9];
+  if (colorType === 6) return; // already RGBA
+  if (colorType !== 2 || depth !== 8 || ihdr[12] !== 0) throw new Error(`Unsupported PNG format in ${file}`);
+  const raw = inflateSync(Buffer.concat(idat));
+  const bpp = 3, stride = w * bpp;
+  const prev = Buffer.alloc(stride), cur = Buffer.alloc(stride);
+  const out = Buffer.alloc(h * (1 + w * 4));
+  for (let y = 0; y < h; y++) {
+    const ft = raw[y * (stride + 1)];
+    const line = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    for (let i = 0; i < stride; i++) {
+      const a = i >= bpp ? cur[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0;
+      let v = line[i];
+      if (ft === 1) v += a;
+      else if (ft === 2) v += b;
+      else if (ft === 3) v += (a + b) >> 1;
+      else if (ft === 4) { const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+      cur[i] = v & 0xff;
+    }
+    const o = y * (1 + w * 4);
+    out[o] = 0; // filter: none
+    for (let x = 0; x < w; x++) {
+      out[o + 1 + x * 4] = cur[x * 3]; out[o + 2 + x * 4] = cur[x * 3 + 1]; out[o + 3 + x * 4] = cur[x * 3 + 2]; out[o + 4 + x * 4] = 255;
+    }
+    cur.copy(prev);
+  }
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
+    const td = Buffer.concat([Buffer.from(type, "ascii"), data]);
+    const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td) >>> 0);
+    return Buffer.concat([len, td, crc]);
+  };
+  const newIhdr = Buffer.from(ihdr); newIhdr[9] = 6;
+  writeFileSync(file, Buffer.concat([buf.subarray(0, 8), chunk("IHDR", newIhdr), chunk("IDAT", deflateSync(out, { level: 9 })), chunk("IEND", Buffer.alloc(0))]));
+}
+
+// Play Store listing icon (512x512 32-bit PNG, full bleed — Play applies its own mask).
 console.log("Play Store");
-render(join(root, "android/store/play-store-icon-512.png"), 512, 512, 72, "square");
+const playIcon = join(root, "android/store/play-store-icon-512.png");
+render(playIcon, 512, 512, 72, "square");
+pngToRgba(playIcon);
 
 // Play Store feature graphic (1024x500)
 console.log("Feature graphic");
