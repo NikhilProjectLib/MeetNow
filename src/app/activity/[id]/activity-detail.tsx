@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useActivityStore } from "@/stores/activity-store";
-import { categoryLabels } from "@/lib/mock-data";
+import { getCategoryLabel } from "@/lib/mock-data";
 import { ArrowLeft, MapPin, Clock, Users, Calendar, Info, Navigation, CalendarPlus } from "lucide-react";
 import { ActivityChat } from "@/components/activity-chat";
 import { ActivityLocationMap } from "@/components/activity-location-map";
@@ -158,7 +158,7 @@ export function ActivityDetail({ id, initialActivity }: { id: string; initialAct
           <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-[#000000] dark:text-[#FFFFFF]">{activity.name}</h1>
           <div className="flex flex-wrap gap-2 mt-2">
             <span className="inline-block uber-chip uber-chip-active text-xs">
-              {categoryLabels[activity.category] || activity.category}
+              {getCategoryLabel(activity.category)}
             </span>
             {activity.recurrence === "weekly" && (
               <span className="inline-block uber-chip text-xs">

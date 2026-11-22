@@ -8,6 +8,8 @@ import { validateCreateForm } from "@/lib/validators";
 import { CreateActivityForm } from "@/types";
 import {
   defaultCategories,
+  slugifyCategory,
+  getCategoryLabel,
   categoryEmojis,
   categoryLabels,
   quickTimeSlots,
@@ -33,6 +35,7 @@ export default function CreatePage() {
   const [customCategoryName, setCustomCategoryName] = useState("");
   const [customCategoryEmoji, setCustomCategoryEmoji] = useState("✨");
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customCategories, setCustomCategories] = useState<{ id: string; label: string; emoji: string }[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -46,9 +49,14 @@ export default function CreatePage() {
     const existing = new Set(defaultCategories.map((c) => c.id));
     const dynamicFromActivities = activities
       .filter((a) => !existing.has(a.category))
-      .map((a) => ({ id: a.category, label: categoryLabels[a.category] || a.category, emoji: categoryEmojis[a.category] || "✨" }));
-    return [...defaultCategories, ...dynamicFromActivities];
-  }, [activities]);
+      .map((a) => ({ id: a.category, label: getCategoryLabel(a.category), emoji: a.emoji || categoryEmojis[a.category] || "✨" }));
+    const fromActivities = new Set(dynamicFromActivities.map((c) => c.id));
+    return [
+      ...customCategories.filter((c) => !existing.has(c.id) && !fromActivities.has(c.id)),
+      ...defaultCategories,
+      ...dynamicFromActivities,
+    ];
+  }, [activities, customCategories]);
 
   const filteredCategories = useMemo(() => {
     if (!categorySearch.trim()) return showAllCategories ? allCategories : allCategories.slice(0, 8);
@@ -63,7 +71,7 @@ export default function CreatePage() {
   }, [activities]);
 
   const [form, setForm] = useState<CreateActivityForm>({
-    name: "", location: "", date: "", time: "", playersNeeded: 10, category: "cricket", description: "",
+    name: "", location: "", date: "", time: "", playersNeeded: 10, category: "", description: "",
   });
 
   const today = new Date();
@@ -84,14 +92,29 @@ export default function CreatePage() {
     { label: "Next Week", value: getDateString(7) },
   ];
 
-  const handleAddCustomCategory = () => {
-    if (!customCategoryName.trim()) return;
-    const id = customCategoryName.toLowerCase().replace(/\s+/g, "-");
-    categoryEmojis[id] = customCategoryEmoji;
-    categoryLabels[id] = customCategoryName;
-    setForm({ ...form, category: id });
+  /** Create (or select, if it already exists) a category from a typed name. */
+  const addCustomCategory = (rawName: string, emoji: string) => {
+    const name = rawName.trim().replace(/\s+/g, " ").slice(0, 30);
+    if (!name) {
+      setErrors((prev) => ({ ...prev, category: "Type a name for your activity type, e.g. Box cricket" }));
+      return;
+    }
+    const existing = allCategories.find((c) => c.label.toLowerCase() === name.toLowerCase());
+    const id = existing?.id || slugifyCategory(name) || `custom-${Date.now()}`;
+    if (!existing) {
+      categoryEmojis[id] = emoji || "✨";
+      categoryLabels[id] = name;
+      setCustomCategories((prev) => [{ id, label: name, emoji: emoji || "✨" }, ...prev]);
+    }
+    setForm((prev) => ({ ...prev, category: id }));
+    setErrors((prev) => ({ ...prev, category: "" }));
     setShowCustomInput(false); setCustomCategoryName(""); setCategorySearch("");
   };
+  const handleAddCustomCategory = () => addCustomCategory(customCategoryName, customCategoryEmoji);
+
+  const searchText = categorySearch.trim();
+  const searchHasExactMatch = allCategories.some((c) => c.label.toLowerCase() === searchText.toLowerCase());
+  const selectedCategory = allCategories.find((c) => c.id === form.category);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,36 +189,73 @@ export default function CreatePage() {
               <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">Category</label>
                 <button type="button" onClick={() => setShowCustomInput(!showCustomInput)} className="text-xs text-[#000000] dark:text-[#FFFFFF] hover:underline flex items-center gap-1">
-                  <Plus className="h-3 w-3" /> Custom
+                  <Plus className="h-3 w-3" /> {showCustomInput ? "Close" : "Create your own"}
                 </button>
               </div>
 
-              {/* Search */}
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#6B6B6B]" />
-                <input
-                  placeholder="Search categories..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF]"
-                  value={categorySearch}
-                  onChange={(e) => setCategorySearch(e.target.value)}
-                />
-              </div>
-
-              {/* Custom input */}
-              {showCustomInput && (
-                <div className="flex gap-2 mb-3 p-3 rounded-xl bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333]">
-                  <input placeholder="😀" className="w-14 text-center text-lg py-2 bg-[#F6F6F6] dark:bg-[#1A1A1A] rounded-lg outline-none" value={customCategoryEmoji} onChange={(e) => setCustomCategoryEmoji(e.target.value.slice(-2))} maxLength={2} />
-                  <input placeholder="Category name" className="flex-1 px-3 py-2 text-sm bg-[#F6F6F6] dark:bg-[#1A1A1A] rounded-lg outline-none text-[#000000] dark:text-[#FFFFFF]" value={customCategoryName} onChange={(e) => setCustomCategoryName(e.target.value)} />
-                  <button type="button" onClick={handleAddCustomCategory} className="uber-btn text-xs px-4 py-2">Add</button>
+              {/* Create your own category */}
+              {showCustomInput ? (
+                <div className="flex flex-col gap-3 mb-3 p-4 rounded-xl bg-[#FFFFFF] dark:bg-[#000000] border border-[#E2E2E2] dark:border-[#333333]">
+                  <label className="text-xs font-medium text-[#6B6B6B]">Name your activity type</label>
+                  <div className="flex gap-2">
+                    <input
+                      autoFocus
+                      placeholder="e.g. Box cricket, Chess, Salsa"
+                      maxLength={30}
+                      className="flex-1 min-w-0 px-3 py-2.5 text-sm bg-[#F6F6F6] dark:bg-[#1A1A1A] rounded-lg outline-none text-[#000000] dark:text-[#FFFFFF] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF]"
+                      value={customCategoryName}
+                      onChange={(e) => setCustomCategoryName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddCustomCategory(); } }}
+                    />
+                    <button type="button" onClick={handleAddCustomCategory} disabled={!customCategoryName.trim()}
+                      className="uber-btn text-xs px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                      Add
+                    </button>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#6B6B6B] mb-1.5">Pick an icon</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["✨", "🏏", "⚽", "🏀", "🏸", "🎾", "🏐", "🏓", "🥊", "🧗", "🚴", "🏊", "♟️", "🎲", "🎮", "🎤", "💃", "🎨", "📚", "🍕", "☕", "🎉"].map((em) => (
+                        <button key={em} type="button" onClick={() => setCustomCategoryEmoji(em)}
+                          aria-label={`Icon ${em}`}
+                          className={cn("h-9 w-9 rounded-lg text-lg flex items-center justify-center transition-colors",
+                            customCategoryEmoji === em ? "bg-[#000000] dark:bg-[#FFFFFF]" : "bg-[#F6F6F6] dark:bg-[#1A1A1A] hover:bg-[#E2E2E2] dark:hover:bg-[#333333]")}>
+                          {em}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative mb-3">
+                  <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#6B6B6B]" />
+                  <input
+                    placeholder="Search or type a new category..."
+                    className="w-full pl-9 pr-4 py-2.5 bg-[#FFFFFF] dark:bg-[#000000] rounded-lg text-sm text-[#000000] dark:text-[#FFFFFF] placeholder:text-[#6B6B6B] outline-none border border-[#E2E2E2] dark:border-[#333333] focus:ring-2 focus:ring-[#000000] dark:focus:ring-[#FFFFFF]"
+                    value={categorySearch}
+                    onChange={(e) => setCategorySearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      e.preventDefault();
+                      if (!searchText) return;
+                      if (filteredCategories.length === 1) { setForm({ ...form, category: filteredCategories[0].id }); setCategorySearch(""); return; }
+                      if (!searchHasExactMatch) addCustomCategory(searchText, "✨");
+                    }}
+                  />
                 </div>
               )}
 
               {/* Category chips */}
               <div className="flex flex-wrap gap-2">
+                {!showCustomInput && searchText && !searchHasExactMatch && (
+                  <button type="button" onClick={() => addCustomCategory(searchText, "✨")} className="uber-chip border border-dashed border-[#000000] dark:border-[#FFFFFF]">
+                    <Plus className="h-3.5 w-3.5" /> Add &ldquo;{searchText}&rdquo;
+                  </button>
+                )}
                 {filteredCategories.map((cat) => (
                   <button
                     key={cat.id} type="button"
-                    onClick={() => setForm({ ...form, category: cat.id })}
+                    onClick={() => { setForm({ ...form, category: cat.id }); setErrors((prev) => ({ ...prev, category: "" })); }}
                     className={cn("uber-chip", form.category === cat.id && "uber-chip-active")}
                   >
                     <span className="text-sm">{cat.emoji}</span> {cat.label}
@@ -207,6 +267,11 @@ export default function CreatePage() {
                   Show all {allCategories.length} categories
                 </button>
               )}
+              <p className="text-xs mt-3 text-[#6B6B6B]">
+                {selectedCategory
+                  ? <>Selected: <span className="font-semibold text-[#000000] dark:text-[#FFFFFF]">{selectedCategory.emoji} {selectedCategory.label}</span></>
+                  : "No category selected yet — pick one above or create your own."}
+              </p>
               {errors.category && <p className="text-xs text-[#E11900] mt-1">{errors.category}</p>}
             </div>
 
@@ -308,7 +373,7 @@ export default function CreatePage() {
                 <Users className="h-4 w-4 text-[#6B6B6B]" />
                 <label className="text-sm font-semibold text-[#000000] dark:text-[#FFFFFF]">Group Size</label>
               </div>
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {playerPresets.map((preset) => (
                   <button key={preset.label} type="button" onClick={() => setForm({ ...form, playersNeeded: preset.value })}
                     className={cn("uber-chip", form.playersNeeded === preset.value && "uber-chip-active")}>

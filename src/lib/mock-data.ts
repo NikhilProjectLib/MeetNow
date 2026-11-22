@@ -72,3 +72,15 @@ export const autoDeleteOptions = [
 
 // Empty initial activities (Firebase provides real data)
 export const mockActivities: Activity[] = [];
+
+/** Turn a custom category name into an id ("Box Cricket!" → "box-cricket"). Keeps non-Latin letters. */
+export function slugifyCategory(name: string): string {
+  return name.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
+}
+
+/** Display label for any category id — known ones from the list, custom ones prettified ("box-cricket" → "Box cricket"). */
+export function getCategoryLabel(id: string): string {
+  if (categoryLabels[id]) return categoryLabels[id];
+  const text = id.replace(/-/g, " ").trim();
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : "Other";
+}

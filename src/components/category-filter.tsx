@@ -1,7 +1,7 @@
 "use client";
 
 import { ActivityCategory } from "@/types";
-import { categoryEmojis, categoryLabels } from "@/lib/mock-data";
+import { categoryEmojis, getCategoryLabel } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
@@ -36,7 +36,7 @@ export function CategoryFilter({ categories, activeCategory, onSelect }: Categor
             )}
           >
             <span className="text-sm">{categoryEmojis[category] || "✨"}</span>
-            <span>{categoryLabels[category] || category}</span>
+            <span>{getCategoryLabel(category)}</span>
           </button>
         );
       })}
